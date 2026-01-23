@@ -1,0 +1,26 @@
+id ICON "../win32icon.ico"
+
+1 VERSIONINFO
+FILEVERSION     1,0,0,0
+PRODUCTVERSION  1,0,0,0
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "080904E4"
+    BEGIN
+      VALUE "CompanyName", "Omnispeak Developers"
+      VALUE "FileDescription", "A Commander Keen Reimplementation"
+      VALUE "FileVersion", "1.0"
+      VALUE "InternalName", "omnispeak"
+      VALUE "LegalCopyright", "(C) 2012-2021 Omnispeak Developers. Commander Keen is (C) id Software."
+      VALUE "OriginalFilename", "omnispeak.exe"
+      VALUE "ProductName", "Omnispeak"
+      VALUE "ProductVersion", "1.0"
+    END
+  END
+
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0x809, 1252
+  END
+END

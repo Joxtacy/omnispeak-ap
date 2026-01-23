@@ -1,0 +1,71 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\ethan\\Desktop\\omnispeakAP\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ethan\\Desktop\\omnispeakAP\\src\\ck_game.c||{3B902123-F8A7-4915-9F01-361F908088D0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\ck_game.c||{3B902123-F8A7-4915-9F01-361F908088D0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ethan\\Desktop\\omnispeakAP\\src\\ap_hooks.c||{3B902123-F8A7-4915-9F01-361F908088D0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\ap_hooks.c||{3B902123-F8A7-4915-9F01-361F908088D0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ethan\\Desktop\\omnispeakAP\\src\\ap_hooks.h||{3B902123-F8A7-4915-9F01-361F908088D0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\ap_hooks.h||{3B902123-F8A7-4915-9F01-361F908088D0}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 2,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "ap_hooks.c",
+              "DocumentMoniker": "C:\\Users\\ethan\\Desktop\\omnispeakAP\\src\\ap_hooks.c",
+              "RelativeDocumentMoniker": "src\\ap_hooks.c",
+              "ToolTip": "C:\\Users\\ethan\\Desktop\\omnispeakAP\\src\\ap_hooks.c",
+              "RelativeToolTip": "src\\ap_hooks.c",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000423|",
+              "WhenOpened": "2026-01-23T21:03:39.08Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "ap_hooks.h",
+              "DocumentMoniker": "C:\\Users\\ethan\\Desktop\\omnispeakAP\\src\\ap_hooks.h",
+              "RelativeDocumentMoniker": "src\\ap_hooks.h",
+              "ToolTip": "C:\\Users\\ethan\\Desktop\\omnispeakAP\\src\\ap_hooks.h",
+              "RelativeToolTip": "src\\ap_hooks.h",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2026-01-23T21:02:31.715Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "ck_game.c",
+              "DocumentMoniker": "C:\\Users\\ethan\\Desktop\\omnispeakAP\\src\\ck_game.c",
+              "RelativeDocumentMoniker": "src\\ck_game.c",
+              "ToolTip": "C:\\Users\\ethan\\Desktop\\omnispeakAP\\src\\ck_game.c",
+              "RelativeToolTip": "src\\ck_game.c",
+              "ViewState": "AgIAANIDAAAAAAAAAAAAAOQDAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000423|",
+              "WhenOpened": "2026-01-23T20:51:18.707Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
