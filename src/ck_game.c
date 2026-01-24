@@ -606,6 +606,7 @@ void CK_LoadLevel(bool doCache, bool silent)
 
 	//Store level number for AP
 	ap_current_level = ck_gameState.currentLevel;
+	ap_current_points = 0;
 
 	CA_CacheMap(ck_gameState.currentLevel);
 	RF_NewMap();
@@ -894,6 +895,7 @@ void CK_GameLoop()
 		}
 
 	replayLevel:
+		ap_current_points = 0;
 		ck_scrollDisabled = false;
 		SD_WaitSoundDone();
 		CK_PlayLoop();

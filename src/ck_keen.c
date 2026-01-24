@@ -203,6 +203,8 @@ int ck_KeenPoleOffs[3] = {-8, 0, 8};
 void CK_IncreaseScore(int score)
 {
 	ck_gameState.keenScore += score;
+	//send point increase to AP
+	ap_on_score_increase(score);
 	if (IN_DemoGetMode() != IN_Demo_Off)
 		return;
 	if (ck_gameState.keenScore >= ck_gameState.nextKeenAt)
