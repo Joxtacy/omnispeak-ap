@@ -43,6 +43,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include <stdio.h>
 #include "id_vl.h"
 
+//AP Specific
+#include "ap_hooks.h"
+
 void CK_SpawnKeen(int tileX, int tileY, int direction);
 extern CK_object *ck_keenObj;
 
@@ -95,6 +98,7 @@ void CK_KeenColFunc(CK_object *a, CK_object *b)
 		if (b->user1 < 4)
 		{
 			ck_gameState.keyGems[b->user1]++;
+			ap_on_keygem_get(b->user1);
 		}
 		else if (b->user1 == 10)
 		{

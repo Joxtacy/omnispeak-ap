@@ -41,6 +41,9 @@ CK_EpisodeDef ck4_episode = {
 	&CK4_IsPresent,
 };
 
+//AP Specific
+#include "ap_hooks.h"
+
 // Contains some keen-4 specific functions.
 
 // Level Ending Object Spawn
@@ -881,6 +884,10 @@ void CK4_KeenSwimCol(CK_object *a, CK_object *b)
 		if (b->user1 < 4)
 		{
 			ck_gameState.keyGems[b->user1]++;
+			
+			//AP handle getting keygem
+			ap_on_keygem_get(b->user1);
+
 		}
 		else if (b->user1 == 10)
 		{

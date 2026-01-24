@@ -2,6 +2,9 @@
 #ifndef AP_HOOKS_H
 #define AP_HOOKS_H
 
-void ap_on_level_complete(int episode, int level);
+extern int ap_current_level;
+
+void ap_on_level_complete(int episode);
+void ap_on_keygem_get(int item);
 
 #endif

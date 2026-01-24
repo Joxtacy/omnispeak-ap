@@ -604,6 +604,9 @@ void CK_LoadLevel(bool doCache, bool silent)
 		US_InitRndT(true);
 	}
 
+	//Store level number for AP
+	ap_current_level = ck_gameState.currentLevel;
+
 	CA_CacheMap(ck_gameState.currentLevel);
 	RF_NewMap();
 	CA_ClearMarks();
@@ -959,7 +962,7 @@ void CK_GameLoop()
 				ck_gameState.levelsDone[ca_mapOn] = 1;
 
 				//Register the level is complete to AP
-				ap_on_level_complete(ck_currentEpisode->ep, ca_mapOn);
+				ap_on_level_complete(ck_currentEpisode->ep);
 
 				// Quit out early if we're doing the store demo.
 				if (ck_storeDemo && ca_mapOn  == 2)
@@ -993,7 +996,7 @@ void CK_GameLoop()
 				ck_gameState.levelsDone[ca_mapOn] = 1;
 
 				//Register the level is complete to AP
-				ap_on_level_complete(ck_currentEpisode->ep, ca_mapOn);
+				ap_on_level_complete(ck_currentEpisode->ep);
 
 				CK4_ShowCouncilMessage();
 
