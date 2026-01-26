@@ -720,6 +720,8 @@ void CK_KeenRunningThink(CK_object *obj)
 	if (ck_keenState.shootIsPressed && !ck_keenState.shootWasPressed)
 	{
 		ck_keenState.shootWasPressed = true;
+		if (!ap_has_stunner)
+			return;
 
 		if (ck_inputFrame.yDirection == -1)
 		{
@@ -748,6 +750,8 @@ void CK_KeenRunningThink(CK_object *obj)
 	if (ck_keenState.pogoIsPressed && !ck_keenState.pogoWasPressed)
 	{
 		ck_keenState.pogoWasPressed = true;
+		if (!ap_has_pogo)
+			return;
 		obj->currentAction = CK_ACTION(CK_ACT_keenPogo1);
 		SD_PlaySound(CK_SOUNDNUM(SOUND_KEENJUMP));
 		obj->velX = obj->xDirection * 16;
@@ -805,6 +809,8 @@ void CK_HandleInputOnGround(CK_object *obj)
 	if (ck_keenState.shootIsPressed && !ck_keenState.shootWasPressed)
 	{
 		ck_keenState.shootWasPressed = true;
+		if (!ap_has_stunner)
+			return;
 		if (ck_inputFrame.yDirection == -1)
 		{
 			obj->currentAction = CK_ACTION(CK_ACT_keenShootUp1);
@@ -831,6 +837,8 @@ void CK_HandleInputOnGround(CK_object *obj)
 	if (ck_keenState.pogoIsPressed && !ck_keenState.pogoWasPressed)
 	{
 		ck_keenState.pogoWasPressed = true;
+		if (!ap_has_pogo)
+			return;
 		SD_PlaySound(CK_SOUNDNUM(SOUND_KEENJUMP));
 		obj->currentAction = CK_ACTION(CK_ACT_keenPogo1);
 		obj->velX = 0;
@@ -1160,6 +1168,8 @@ void CK_KeenJumpThink(CK_object *obj)
 	if (ck_keenState.shootIsPressed && !ck_keenState.shootWasPressed)
 	{
 		ck_keenState.shootWasPressed = true;
+		if (!ap_has_stunner)
+			return;
 		switch (ck_inputFrame.yDirection)
 		{
 		case -1:
@@ -1178,6 +1188,8 @@ void CK_KeenJumpThink(CK_object *obj)
 	if (ck_keenState.pogoIsPressed && !ck_keenState.pogoWasPressed)
 	{
 		ck_keenState.pogoWasPressed = true;
+		if (!ap_has_pogo)
+			return;
 		obj->currentAction = CK_ACTION(CK_ACT_keenPogo2);
 		ck_keenState.jumpTimer = 0;
 		return;
@@ -1403,6 +1415,8 @@ void CK_KeenPogoThink(CK_object *obj)
 	if (ck_keenState.shootIsPressed && !ck_keenState.shootWasPressed)
 	{
 		ck_keenState.shootWasPressed = true;
+		if (!ap_has_stunner)
+			return;
 		switch (ck_inputFrame.yDirection)
 		{
 		case -1:
@@ -1740,6 +1754,8 @@ void CK_KeenPoleHandleInput(CK_object *obj)
 	if (ck_keenState.shootIsPressed && !ck_keenState.shootWasPressed)
 	{
 		ck_keenState.shootWasPressed = true;
+		if (!ap_has_stunner)
+			return;
 
 		switch (ck_inputFrame.yDirection)
 		{

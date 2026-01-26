@@ -3,6 +3,8 @@
 
 int ap_current_level = -1;
 int ap_current_points = 0;
+bool ap_has_pogo = 0;
+bool ap_has_stunner = 0;
 
 void ap_on_level_complete(int episode)
 {
