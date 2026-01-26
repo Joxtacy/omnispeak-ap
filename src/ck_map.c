@@ -33,6 +33,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include <stdio.h>
 #include <string.h>
 
+//AP specific
+#include "ap_hooks.h"
+#include "ck_act.h"
+
 void CK_MapKeenWalk(CK_object *obj);
 
 // =========================================================================
@@ -345,6 +349,12 @@ void CK_ScanForLevelEntry(CK_object *obj)
 			int infotile = CA_TileAtPos(tx, ty, 2);
 			if (infotile >= (0xC000 + CK_INT(ck_minEnterLevel, 1)) && infotile <= (0xC000 + CK_INT(ck_maxEnterLevel, 18)))
 			{
+				//AP prevent entering map if not received
+				if (!ap_has_level(infotile - 0xC000))
+				{
+					ap_show_message(CK_STRING(ck_ap_no_level));
+					return;
+				}
 				// Vanilla keen stores the current map loaded in the cache manager
 				// and the "current_map" variable stored in the gamestate
 				// would have been changed here.

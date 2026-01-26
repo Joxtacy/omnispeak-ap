@@ -10,5 +10,7 @@ extern bool ap_has_stunner;
 void ap_on_level_complete(int episode);
 void ap_on_keygem_get(int item);
 void ap_on_score_increase(int points);
+bool ap_has_level(int level);
+void ap_show_message(const char* msg);
 
 #endif
