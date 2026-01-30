@@ -350,11 +350,13 @@ void CK_ScanForLevelEntry(CK_object *obj)
 			if (infotile >= (0xC000 + CK_INT(ck_minEnterLevel, 1)) && infotile <= (0xC000 + CK_INT(ck_maxEnterLevel, 18)))
 			{
 				//AP prevent entering map if not received
-				if (!ap_has_level(infotile - 0xC000))
+				if (!ap_has_level(infotile - 0xC000, ck_currentEpisode -> ep))
 				{
 					ap_show_message(CK_STRING(ck_ap_no_level));
 					return;
 				}
+				ap_starting_points = ck_gameState.keenScore;
+				ap_points_gained = 0;
 				// Vanilla keen stores the current map loaded in the cache manager
 				// and the "current_map" variable stored in the gamestate
 				// would have been changed here.

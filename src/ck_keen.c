@@ -112,6 +112,7 @@ void CK_KeenColFunc(CK_object *a, CK_object *b)
 		else if ((ck_currentEpisode->ep == EP_CK5) && (b->user1 == 12))
 		{
 			ck_gameState.ep.ck5.securityCard = 1;
+			ap_on_security_card_get();
 		}
 #endif
 		CK_SetAction2(b, CK_ACTION(CK_ACT_itemNotify));
@@ -204,7 +205,7 @@ void CK_IncreaseScore(int score)
 {
 	ck_gameState.keenScore += score;
 	//send point increase to AP
-	ap_on_score_increase(score);
+	ap_on_score_increase(ck_gameState.keenScore);
 	if (IN_DemoGetMode() != IN_Demo_Off)
 		return;
 	if (ck_gameState.keenScore >= ck_gameState.nextKeenAt)

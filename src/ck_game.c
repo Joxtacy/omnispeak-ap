@@ -547,7 +547,10 @@ void CK_MapLevelMarkAsDone(void)
 				/* Is this a level tile */
 				flags = w >> 8;
 				/* Set the info tile at this position to 0 */
-				*pw = 0;
+
+				//AP Do not reset the info tile to allow reentry to the level
+				//*pw = 0;
+
 				if (flags == 0xD0)
 				{
 					/* If this is a 'blocking' part of the level */
@@ -604,9 +607,9 @@ void CK_LoadLevel(bool doCache, bool silent)
 		US_InitRndT(true);
 	}
 
-	//Store level number for AP
+	//Store level number & episode for AP
 	ap_current_level = ck_gameState.currentLevel;
-	ap_current_points = 0;
+	ap_current_episode = ck_currentEpisode -> ep;
 
 	CA_CacheMap(ck_gameState.currentLevel);
 	RF_NewMap();
@@ -895,7 +898,6 @@ void CK_GameLoop()
 		}
 
 	replayLevel:
-		ap_current_points = 0;
 		ck_scrollDisabled = false;
 		SD_WaitSoundDone();
 		CK_PlayLoop();
@@ -964,7 +966,7 @@ void CK_GameLoop()
 				ck_gameState.levelsDone[ca_mapOn] = 1;
 
 				//Register the level is complete to AP
-				ap_on_level_complete(ck_currentEpisode->ep);
+				ap_on_level_complete();
 
 				// Quit out early if we're doing the store demo.
 				if (ck_storeDemo && ca_mapOn  == 2)
@@ -998,7 +1000,7 @@ void CK_GameLoop()
 				ck_gameState.levelsDone[ca_mapOn] = 1;
 
 				//Register the level is complete to AP
-				ap_on_level_complete(ck_currentEpisode->ep);
+				ap_on_level_complete();
 
 				CK4_ShowCouncilMessage();
 
