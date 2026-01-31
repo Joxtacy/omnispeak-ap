@@ -71,17 +71,8 @@ bool ap_has_level(int level, int ep)
 
 void ap_show_message(const char* msg)
 {
-	SD_WaitSoundDone();
-	CA_UpLevel();
-	CA_CacheGrChunk(CK_CHUNKNUM(PIC_KEENTALK1));
-	US_CenterWindow(26, 8);
-	VHB_DrawBitmap(US_GetWindowX() + US_GetWindowW() - 0x30, US_GetWindowY(), CK_CHUNKNUM(PIC_KEENTALK1));
-	US_SetWindowW(US_GetWindowW() - 0x30);
-	US_SetPrintY(US_GetPrintY() + 6);
-	US_CPrint(msg);
+	US_CenterWindow(20, 3);
+	US_PrintCentered(msg);
 	VH_UpdateScreen();
-	// VL_WaitVBL(30);
-	IN_ClearKeysDown();
 	IN_WaitButton();
-	CA_DownLevel();
 }

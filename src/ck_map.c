@@ -352,7 +352,7 @@ void CK_ScanForLevelEntry(CK_object *obj)
 				//AP prevent entering map if not received
 				if (!ap_has_level(infotile - 0xC000, ck_currentEpisode -> ep))
 				{
-					ap_show_message(CK_STRING(ck_ap_no_level));
+					ap_show_message("Level Locked!");
 					return;
 				}
 				ap_starting_points = ck_gameState.keenScore;

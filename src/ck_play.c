@@ -362,7 +362,7 @@ void CK_SpriteTest()
 
 void CK_ItemCheat()
 {
-	int i;
+	/*int i;
 
 	for (i = IN_SC_A; i <= IN_SC_Z; i++)
 	{
@@ -371,22 +371,22 @@ void CK_ItemCheat()
 			if (IN_GetKeyState(i))
 				return;
 		}
-	}
+	}*/
 
-	US_CenterWindow(20, 7);
+	US_CenterWindow(20, 3);
 	// TODO: PrintY+=2;
-	US_CPrint(CK_STRING(ck_str_itemCheat));
+	US_PrintCentered("Nice Try...");
 	VH_UpdateScreen();
 	
 	IN_WaitButton();
 	RF_ForceRefresh();
-	ck_gameState.numShots = 99;
+	/*ck_gameState.numShots = 99;
 	ck_gameState.numLives++;
 	ck_gameState.ep.ck5.securityCard = 1;
 	ck_gameState.keyGems[0] =
 		ck_gameState.keyGems[1] =
 			ck_gameState.keyGems[2] =
-				ck_gameState.keyGems[3] = 1;
+				ck_gameState.keyGems[3] = 1;*/
 }
 
 void CK_SetupObjArray()
@@ -853,7 +853,7 @@ void CK_WallDebug()
 bool CK_DebugKeys()
 {
 	// Border colour
-	if (IN_GetKeyState(IN_SC_B) && game_in_progress)
+	/*if (IN_GetKeyState(IN_SC_B) && game_in_progress)
 	{
 		char str[4];
 		uint16_t w, h;
@@ -1090,9 +1090,10 @@ bool CK_DebugKeys()
 		// Not sure why this'd be 'false', but that's what
 		// the disassembly says.
 		return false;
-	}
+	}*/
 
 	return false;
+	
 }
 
 // Check non-game keys
@@ -1826,7 +1827,7 @@ extern void RFL_SetupOnscreenAnimList();
 #include "id_vl_private.h"
 void CK_ShowStatusWindow(void)
 {
-
+	
 	// int oldBufferofs;
 
 	US_SetWindowX(0);
@@ -1837,12 +1838,13 @@ void CK_ShowStatusWindow(void)
 	// This function is called when enter pressed; check for A+2 to enable debug mode
 	if (IN_GetKeyState(IN_SC_A) && IN_GetKeyState(IN_SC_Two))
 	{
-		US_CenterWindow(20, 2);
-		US_SetPrintY(US_GetPrintY() + 2);
-		US_Print(CK_STRING(ck_str_debugKeysActive));
+		US_CenterWindow(20, 3);
+		//US_SetPrintY(US_GetPrintY() + 2);
+		US_PrintCentered("Nope...");
 		VH_UpdateScreen();
 		IN_WaitButton();
-		ck_debugActive = true;
+		RF_ForceRefresh();
+		//ck_debugActive = true;
 	}
 
 	RF_Refresh();
