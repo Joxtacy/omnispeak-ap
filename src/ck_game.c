@@ -929,8 +929,15 @@ void CK_GameLoop()
 		switch (ck_gameState.levelState)
 		{
 		case LS_Died:
-			if (CK_TryAgainMenu())
-				goto replayLevel;
+			if(ap_force_abort)
+			{
+				ap_force_abort = 0;
+			}
+			else
+			{
+				if (CK_TryAgainMenu())
+					goto replayLevel;
+			}
 			//ck_gameState.currentLevel = ck_nextMapNumber;
 			break;
 

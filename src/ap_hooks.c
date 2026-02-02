@@ -12,9 +12,10 @@ int ap_current_level = -1;
 int ap_current_episode = -1;
 int ap_starting_points = 0;
 int ap_points_gained = 0;
-bool ap_has_pogo = 0;
-bool ap_has_stunner = 0;
+bool ap_has_pogo = 1;
+bool ap_has_stunner = 1;
 bool ap_has_wetsuit = 0;
+bool ap_force_abort = 0;
 
 void ap_on_level_complete()
 {
@@ -43,7 +44,17 @@ void ap_on_security_card_get()
 	FILE *f = fopen("ap_log.txt", "a");
 	if(!f) return;
 
-	fprintf(f, "[AP] Security Card GET: Episode 5, Level %d", ap_current_level);
+	fprintf(f, "[AP] Security Card GET: Episode 5, Level %d\n", ap_current_level);
+
+	fclose(f);
+}
+
+void ap_on_wetsuit_get()
+{
+	FILE *f = fopen("ap_log.txt", "a");
+	if(!f) return;
+
+	fprintf(f, "[AP] Wetsuit GET!!\n");
 
 	fclose(f);
 }
@@ -62,7 +73,8 @@ bool ap_has_level(int level, int ep)
 		case AP_LEVEL_BORDER_VILLAGE:
 		case AP_LEVEL_THE_PERILOUS_PIT:
 		case AP_LEVEL_BEAN_WITH_BACON_MEGAROCKET:
-		case AP_LEVEL_ISLE_OF_FIRE:
+		case AP_LEVEL_MIRAGIA:
+		case AP_LEVEL_ION_VENTILATION_SYSTEM:
 			return true;
 		default:
 			return false;

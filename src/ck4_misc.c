@@ -701,7 +701,7 @@ void CK4_ShowCouncilMessage(void)
 	VH_UpdateScreen();
 	// VW_WaitVBL(30);
 	IN_WaitButton();
-	ck_gameState.ep.ck4.membersRescued++;
+	//ck_gameState.ep.ck4.membersRescued++; //Disable for AP purposes
 	CA_DownLevel();
 	StopMusic();
 }
@@ -883,7 +883,7 @@ void CK4_KeenSwimCol(CK_object *a, CK_object *b)
 
 		if (b->user1 < 4)
 		{
-			ck_gameState.keyGems[b->user1]++;
+			//ck_gameState.keyGems[b->user1]++; //Disable for AP purposes
 			
 			//AP handle getting keygem
 			ap_on_keygem_get(b->user1);

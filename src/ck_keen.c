@@ -97,7 +97,7 @@ void CK_KeenColFunc(CK_object *a, CK_object *b)
 
 		if (b->user1 < 4)
 		{
-			ck_gameState.keyGems[b->user1]++;
+			//ck_gameState.keyGems[b->user1]++; //disable for AP purposes
 			ap_on_keygem_get(b->user1);
 		}
 		else if (b->user1 == 10)
@@ -111,7 +111,7 @@ void CK_KeenColFunc(CK_object *a, CK_object *b)
 #ifdef WITH_KEEN5
 		else if ((ck_currentEpisode->ep == EP_CK5) && (b->user1 == 12))
 		{
-			ck_gameState.ep.ck5.securityCard = 1;
+			//ck_gameState.ep.ck5.securityCard = 1; //disable for AP purposes
 			ap_on_security_card_get();
 		}
 #endif

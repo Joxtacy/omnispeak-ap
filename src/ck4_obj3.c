@@ -28,6 +28,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #include <stdio.h>
 
+//AP Specific
+#include "ap_hooks.h"
+
 // =========================================================================
 
 void CK4_SpawnSmirky(int tileX, int tileY)
@@ -770,7 +773,8 @@ void CK4_WetsuitCol(CK_object *a, CK_object *b)
 {
 	if (b->type == CT_Player && b->topTI)
 	{
-		ck_gameState.ep.ck4.wetsuit = true;
+		ap_on_wetsuit_get();
+		//ck_gameState.ep.ck4.wetsuit = true; //Disable for AP purposes
 		SD_PlaySound(CK_SOUNDNUM(SOUND_FOOTAPPEAR));
 		CK4_ShowWetsuitMessage();
 		//RF_ForceRefresh();

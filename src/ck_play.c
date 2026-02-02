@@ -43,6 +43,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include <stdlib.h> /* For abs() */
 #include <string.h> /* For memset() */
 
+//AP Specific
+#include "ap_hooks.h"
+
 CK_object ck_objArray[CK_MAX_OBJECTS];
 
 CK_object *ck_freeObject;
@@ -1265,6 +1268,14 @@ void CK_CheckKeys()
 	if (IN_GetKeyState(IN_SC_B) && IN_GetKeyState(IN_SC_A) && IN_GetKeyState(IN_SC_T))
 	{
 		CK_ItemCheat();
+	}
+	
+	//AP Graceful level exit to prevent softlocking
+	if (IN_GetKeyState(IN_SC_Control) && IN_GetKeyState(IN_SC_R))
+	{
+		ap_force_abort = 1;
+		ck_gameState.currentLevel = 0;
+		ck_gameState.levelState = LS_Died;
 	}
 
 	// Debug Keys
