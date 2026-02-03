@@ -12,8 +12,8 @@ int ap_current_level = -1;
 int ap_current_episode = -1;
 int ap_starting_points = 0;
 int ap_points_gained = 0;
-bool ap_has_pogo = 1;
-bool ap_has_stunner = 1;
+bool ap_has_pogo = 0;
+bool ap_has_stunner = 0;
 bool ap_has_wetsuit = 0;
 bool ap_force_abort = 0;
 

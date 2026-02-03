@@ -45,6 +45,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 //AP Specific
 #include "ap_hooks.h"
+#include "ap_client.h"
 
 CK_object ck_objArray[CK_MAX_OBJECTS];
 
@@ -1275,7 +1276,25 @@ void CK_CheckKeys()
 	{
 		ap_force_abort = 1;
 		ck_gameState.currentLevel = 0;
-		ck_gameState.levelState = LS_Died;
+		ck_gameState.levelState = LS_Died; //hook into the LS_Died state but ap_force_abort prevents the UI message and loss of a life
+	}
+
+	//AP test: toggle wetsuit
+	if (IN_GetKeyState(IN_SC_Control) && IN_GetKeyState(IN_SC_W))
+	{
+		ap_toggle_wetsuit();
+	}
+
+	//AP test: toggle stunner
+	if (IN_GetKeyState(IN_SC_Control) && IN_GetKeyState(IN_SC_S))
+	{
+		ap_toggle_stunner();
+	}
+
+	//AP test: toggle pogo
+	if (IN_GetKeyState(IN_SC_Control) && IN_GetKeyState(IN_SC_P))
+	{
+		ap_toggle_pogo();
 	}
 
 	// Debug Keys
