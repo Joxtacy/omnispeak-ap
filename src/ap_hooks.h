@@ -11,10 +11,10 @@ extern bool ap_has_stunner;
 extern bool ap_has_wetsuit;
 extern bool ap_force_abort;
 
-void ap_on_level_complete();
+void ap_on_level_complete(void);
 void ap_on_keygem_get(int item);
-void ap_on_security_card_get();
-void ap_on_wetsuit_get();
+void ap_on_security_card_get(void);
+void ap_on_wetsuit_get(void);
 void ap_on_score_increase(int points);
 bool ap_has_level(int level, int episode);
 void ap_show_message(const char* msg);

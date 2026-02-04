@@ -17,7 +17,7 @@ bool ap_has_stunner = 0;
 bool ap_has_wetsuit = 0;
 bool ap_force_abort = 0;
 
-void ap_on_level_complete()
+void ap_on_level_complete(void)
 {
 	FILE *f = fopen("ap_log.txt", "a");
 	if(!f) return;
@@ -39,7 +39,7 @@ void ap_on_keygem_get(int item)
 	fclose(f);
 }
 
-void ap_on_security_card_get()
+void ap_on_security_card_get(void)
 {
 	FILE *f = fopen("ap_log.txt", "a");
 	if(!f) return;
@@ -49,7 +49,7 @@ void ap_on_security_card_get()
 	fclose(f);
 }
 
-void ap_on_wetsuit_get()
+void ap_on_wetsuit_get(void)
 {
 	FILE *f = fopen("ap_log.txt", "a");
 	if(!f) return;
