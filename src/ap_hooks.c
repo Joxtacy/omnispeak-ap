@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "ap_hooks.h"
 #include "ap_defs.h"
+#include "ap_client.h"
 #include "id_sd.h"
 #include "id_ca.h"
 #include "id_us.h"
@@ -19,44 +20,27 @@ bool ap_force_abort = 0;
 
 void ap_on_level_complete(void)
 {
-	FILE *f = fopen("ap_log.txt", "a");
-	if(!f) return;
-
-	fprintf(f, "[AP] Level Complete: Episode %d, Level %d, %d points\n", ap_current_episode, ap_current_level, ap_points_gained);
-
-	fclose(f);
+	int location_id = LOC_LEVEL_COMPLETE(ap_current_episode, ap_current_level);
+	ap_client_location_check(location_id);
 }
 
 void ap_on_keygem_get(int item)
 {
-	/*const char* msg = "Oh sweet, I found\nARCHIPELAGO ITEM\nfor ARCHIPELAGO PLAYER\0";
-	ap_show_message(msg);*/
-	FILE *f = fopen("ap_log.txt", "a");
-	if(!f) return;
-
-	fprintf(f, "[AP] Keygem Received: %d in Level %d in Episode %d\n", item, ap_current_level, ap_current_episode);
-
-	fclose(f);
+	int location_id = LOC_KEYGEM(ap_current_episode, ap_current_level, item);
+	ap_client_location_check(location_id);
 }
 
 void ap_on_security_card_get(void)
 {
-	FILE *f = fopen("ap_log.txt", "a");
-	if(!f) return;
+	int location_id = LOC_SECURITY_KEYCARD(ap_current_episode, ap_current_level);
+	ap_client_location_check(location_id);
 
-	fprintf(f, "[AP] Security Card GET: Episode 5, Level %d\n", ap_current_level);
-
-	fclose(f);
 }
 
 void ap_on_wetsuit_get(void)
 {
-	FILE *f = fopen("ap_log.txt", "a");
-	if(!f) return;
-
-	fprintf(f, "[AP] Wetsuit GET!!\n");
-
-	fclose(f);
+	int location_id = 12345; //whatever the location id ends up being
+	ap_client_location_check(location_id);
 }
 
 void ap_on_score_increase(int score)
@@ -66,19 +50,31 @@ void ap_on_score_increase(int score)
 
 bool ap_has_level(int level, int ep)
 {
-	int unique_check = level * 3 + (ep+3);
-	switch (unique_check)
+	if (ep == 1) //CK4 is episode 1
 	{
-		case AP_LEVEL_SLUG_VILLAGE:
-		case AP_LEVEL_BORDER_VILLAGE:
-		case AP_LEVEL_THE_PERILOUS_PIT:
-		case AP_LEVEL_BEAN_WITH_BACON_MEGAROCKET:
-		case AP_LEVEL_MIRAGIA:
-		case AP_LEVEL_ION_VENTILATION_SYSTEM:
-			return true;
-		default:
-			return false;
+		switch (level)
+		{
+			case AP_LEVEL_BORDER_VILLAGE:
+			case AP_LEVEL_SLUG_VILLAGE:
+			case AP_LEVEL_THE_PERILOUS_PIT:
+			case AP_LEVEL_MIRAGIA:
+				return true;
+			default:
+				return false;
+		}
 	}
+	else if (ep == 2) //CK5 is episode 2
+	{
+		switch (level)
+		{
+			case AP_LEVEL_ION_VENTILATION_SYSTEM:
+			case AP_LEVEL_SECURITY_CENTER:
+				return true;
+			default:
+				return false;
+		}
+	}
+	return -1;
 }
 
 void ap_show_message(const char* msg)

@@ -1,16 +1,17 @@
 #include <stdio.h>
 #include "ap_client.h"
 #include "ap_defs.h"
+#include "ap_hooks.h"
 
-#include <stdio.h>
 #include <string.h>
 
-#define AP_MAX_ITEMS	256
-#define AP_MAX_LOCATIONS	512
+#define AP_MAX_ITEMS		256
+#define AP_MAX_LOCATIONS	1024
 
 static bool ap_items[AP_MAX_ITEMS];
-static bool ap_locations_checked[AP_MAX_LOCATIONS];
 static bool ap_initialized = false;
+static int ap_locations_checked[AP_MAX_LOCATIONS];
+int ap_check_count = 0;
 
 //----------------------------TEST ONLY----------------------------
 void ap_toggle_stunner(void)
@@ -30,12 +31,14 @@ void ap_toggle_wetsuit(void)
 
 //----------------------------END TEST-----------------------------
 
-void client_init(void)
+void ap_client_init(void)
 {
 	memset(ap_items, 0, sizeof(ap_items));
 	memset(ap_locations_checked, 0, sizeof(ap_locations_checked));
-	ap_initialized = true;
 
+	ap_check_count = 0;
+	ap_initialized = true;
+	
 	FILE *f = fopen("ap_log.txt", "a");
 	if (f)
 	{
@@ -44,23 +47,21 @@ void client_init(void)
 	}
 }
 
-void client_poll(void)
+void ap_client_poll(void)
 {
 	//nothing for now
 }
 
-void client_location_check(int location_id)
+void ap_client_location_check(int location_id)
 {
 	if (!ap_initialized)
 		return;
 
-	if (location_id < 0 || location_id >= AP_MAX_LOCATIONS)
+	if (ap_is_checked(location_id))
 		return;
 
-	if (ap_locations_checked[location_id])
-		return;
-
-	ap_locations_checked[location_id] = true;
+	if (ap_check_count < AP_MAX_LOCATIONS)
+		ap_locations_checked[ap_check_count++] = location_id;
 
 	FILE *f = fopen("ap_log.txt", "a");
 	if (f)
@@ -70,7 +71,7 @@ void client_location_check(int location_id)
 	}
 }
 
-bool client_has_item(int item_id)
+bool ap_client_has_item(int item_id)
 {
 	if (!ap_initialized)
 		return false;
@@ -100,4 +101,12 @@ void ap_client_give_item(int item_id)
 		fprintf(f, "[AP] Item Received: %d\n", item_id);
 		fclose(f);
 	}
+}
+
+bool ap_is_checked(int id)
+{
+	for (int i=0; i < ap_check_count; i++)
+		if (ap_locations_checked[i] == id)
+			return true;
+	return false;
 }

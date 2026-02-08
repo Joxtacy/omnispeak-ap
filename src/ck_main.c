@@ -43,6 +43,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include <stdlib.h>
 #include <string.h>
 
+//AP specific
+#include "ap_client.h"
+
 /*
  * The 'episode' we're playing.
  */
@@ -178,6 +181,9 @@ void CK_InitGame()
 	// Create a surface for the dropdown menu
 	ck_statusSurface = VL_CreateSurface(RF_BUFFER_WIDTH_PIXELS, STATUS_H + 16 + 16);
 	ck_backupSurface = VL_CreateSurface(RF_BUFFER_WIDTH_PIXELS, RF_BUFFER_HEIGHT_PIXELS);
+
+	//initialize the AP Client
+	ap_client_init();
 }
 
 /*

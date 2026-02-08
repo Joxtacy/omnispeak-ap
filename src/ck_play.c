@@ -1286,13 +1286,13 @@ void CK_CheckKeys()
 	}
 
 	//AP test: toggle stunner
-	if (IN_GetKeyState(IN_SC_Control) && IN_GetKeyState(IN_SC_S))
+	if (IN_GetKeyState(IN_SC_F8))
 	{
 		ap_toggle_stunner();
 	}
 
 	//AP test: toggle pogo
-	if (IN_GetKeyState(IN_SC_Control) && IN_GetKeyState(IN_SC_P))
+	if (IN_GetKeyState(IN_SC_F9))
 	{
 		ap_toggle_pogo();
 	}

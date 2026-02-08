@@ -42,6 +42,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 //AP Specific
 #include "ap_hooks.h"
+#include "ap_client.h"
 
 // =========================================================================
 
@@ -874,6 +875,9 @@ extern CK_Difficulty ck_startingDifficulty;
 bool CK6_CreatureQuestion();
 void CK_GameLoop()
 {
+	//Poll the AP Client
+	ap_client_poll();
+
 	if (!ck_storeDemo)
 	{
 		if (!CK6_CreatureQuestion())
