@@ -47,6 +47,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "ap_hooks.h"
 #include "ap_client.h"
 
+int apF8_Down = 0;
+int apF9_Down = 0;
+
 CK_object ck_objArray[CK_MAX_OBJECTS];
 
 CK_object *ck_freeObject;
@@ -1280,23 +1283,63 @@ void CK_CheckKeys()
 	}
 
 	//AP test: toggle wetsuit
-	if (IN_GetKeyState(IN_SC_Control) && IN_GetKeyState(IN_SC_W))
+	/*if (IN_GetKeyState(IN_SC_Control) && IN_GetKeyState(IN_SC_W))
 	{
 		ap_toggle_wetsuit();
-	}
+	}*/
 
 	//AP test: toggle stunner
 	if (IN_GetKeyState(IN_SC_F8))
 	{
-		ap_toggle_stunner();
+		if (!apF8_Down)
+		{
+			ap_toggle_stunner();
+			apF8_Down = 1;
+		}
+	}
+	else
+	{
+		apF8_Down = 0;
 	}
 
 	//AP test: toggle pogo
 	if (IN_GetKeyState(IN_SC_F9))
 	{
-		ap_toggle_pogo();
+		if (!apF9_Down)	
+		{	
+			ap_toggle_pogo();
+			apF9_Down = 1;
+		}
+	}
+	else
+	{
+		apF9_Down = 0;
 	}
 
+	//AP test: give red keygem
+	if (IN_GetKeyState(IN_SC_U))
+	{
+		ck_gameState.keyGems[0] = 1;
+	}
+
+	//AP test: give yellow keygem
+	if (IN_GetKeyState(IN_SC_I))
+	{
+		ck_gameState.keyGems[1] = 1;
+	}
+
+	//AP test: give blue keygem
+	if (IN_GetKeyState(IN_SC_O))
+	{
+		ck_gameState.keyGems[2] = 1;
+	}
+
+	//AP test: give green keygem
+	if (IN_GetKeyState(IN_SC_P))
+	{
+		ck_gameState.keyGems[3] = 1;
+	}
+	
 	// Debug Keys
 	if (IN_GetKeyState(IN_SC_F10))
 	{
@@ -2470,23 +2513,24 @@ void CK_PlayLoop()
 		// End-Of-Game cheat
 		if (IN_GetKeyState(IN_SC_E) && IN_GetKeyState(IN_SC_N) && IN_GetKeyState(IN_SC_D))
 		{
+			ap_show_message("Not Gonna Happen");
 #ifdef WITH_KEEN4
 			if (ck_currentEpisode->ep == EP_CK4)
 			{
-				ck_gameState.ep.ck4.membersRescued = CK_INT(CK4_NumCouncilsToRescue, 8) - 1;
-				ck_gameState.levelState = LS_CouncilRescued;
+				//ck_gameState.ep.ck4.membersRescued = CK_INT(CK4_NumCouncilsToRescue, 8) - 1;
+				//ck_gameState.levelState = LS_CouncilRescued;
 			}
 #endif
 #ifdef WITH_KEEN5
 			if (ck_currentEpisode->ep == EP_CK5)
 			{
-				ck_gameState.levelState = LS_DestroyedQED;
+				//ck_gameState.levelState = LS_DestroyedQED;
 			}
 #endif
 #ifdef WITH_KEEN6
 			if (ck_currentEpisode->ep == EP_CK6)
 			{
-				ck_gameState.levelState = LS_Molly;
+				//ck_gameState.levelState = LS_Molly;
 			}
 #endif
 		}

@@ -29,7 +29,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include <stdio.h>
 
 //AP Specific
-#include "ap_hooks.h"
+//#include "ap_hooks.h" //not actually required i think
 
 // =========================================================================
 
@@ -773,7 +773,7 @@ void CK4_WetsuitCol(CK_object *a, CK_object *b)
 {
 	if (b->type == CT_Player && b->topTI)
 	{
-		ap_on_wetsuit_get();
+		//ap_on_wetsuit_get(); //this should not be required as grabbing the wetsuit counts as level complete. we do want to keep the next line commented out
 		//ck_gameState.ep.ck4.wetsuit = true; //Disable for AP purposes
 		SD_PlaySound(CK_SOUNDNUM(SOUND_FOOTAPPEAR));
 		CK4_ShowWetsuitMessage();

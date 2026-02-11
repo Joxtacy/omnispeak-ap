@@ -37,11 +37,11 @@ void ap_on_security_card_get(void)
 
 }
 
-void ap_on_wetsuit_get(void)
+/*void ap_on_wetsuit_get(void)
 {
 	int location_id = 12345; //whatever the location id ends up being
 	ap_client_location_check(location_id);
-}
+}*/
 
 void ap_on_score_increase(int score)
 {
@@ -74,7 +74,7 @@ bool ap_has_level(int level, int ep)
 				return false;
 		}
 	}
-	return -1;
+	return false;
 }
 
 void ap_show_message(const char* msg)
