@@ -8,7 +8,6 @@ extern int ap_starting_points;
 extern int ap_points_gained;
 extern bool ap_has_pogo;
 extern bool ap_has_stunner;
-extern bool ap_has_wetsuit;
 extern bool ap_force_abort;
 
 void ap_on_level_complete(void);

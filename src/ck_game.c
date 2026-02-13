@@ -612,6 +612,9 @@ void CK_LoadLevel(bool doCache, bool silent)
 	ap_current_level = ck_gameState.currentLevel;
 	ap_current_episode = ck_currentEpisode -> ep;
 
+	//apply ap items received to Level
+	ap_apply_level_items(ap_current_level, ap_current_episode);
+
 	CA_CacheMap(ck_gameState.currentLevel);
 	RF_NewMap();
 	CA_ClearMarks();

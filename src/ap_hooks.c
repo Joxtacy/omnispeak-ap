@@ -15,7 +15,6 @@ int ap_starting_points = 0;
 int ap_points_gained = 0;
 bool ap_has_pogo = 0;
 bool ap_has_stunner = 0;
-bool ap_has_wetsuit = 0;
 bool ap_force_abort = 0;
 
 void ap_on_level_complete(void)
@@ -36,12 +35,6 @@ void ap_on_security_card_get(void)
 	ap_client_location_check(location_id);
 
 }
-
-/*void ap_on_wetsuit_get(void)
-{
-	int location_id = 12345; //whatever the location id ends up being
-	ap_client_location_check(location_id);
-}*/
 
 void ap_on_score_increase(int score)
 {

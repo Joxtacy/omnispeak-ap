@@ -46,9 +46,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //AP Specific
 #include "ap_hooks.h"
 #include "ap_client.h"
+#include "ap_defs.h"
 
 int apF8_Down = 0;
 int apF9_Down = 0;
+int apci_Down = 0;
+int apct_Down = 0;
 
 CK_object ck_objArray[CK_MAX_OBJECTS];
 
@@ -1282,18 +1285,40 @@ void CK_CheckKeys()
 		ck_gameState.levelState = LS_Died; //hook into the LS_Died state but ap_force_abort prevents the UI message and loss of a life
 	}
 
-	//AP test: toggle wetsuit
-	/*if (IN_GetKeyState(IN_SC_Control) && IN_GetKeyState(IN_SC_W))
+	//AP test: toggle pogo
+	if (IN_GetKeyState(IN_SC_F9))
 	{
-		ap_toggle_wetsuit();
-	}*/
+		if (!apF9_Down)	
+		{	
+			ap_client_give_item(101);
+			apF9_Down = 1;
+		}
+	}
+	else
+	{
+		apF9_Down = 0;
+	}
+
+	//AP test: toggle wetsuit
+	if (IN_GetKeyState(IN_SC_Control) && IN_GetKeyState(IN_SC_T))
+	{
+		if (!apct_Down)	
+		{	
+			ap_client_give_item(103);
+			apct_Down = 1;
+		}
+	}
+	else
+	{
+		apct_Down = 0;
+	}
 
 	//AP test: toggle stunner
 	if (IN_GetKeyState(IN_SC_F8))
 	{
 		if (!apF8_Down)
 		{
-			ap_toggle_stunner();
+			ap_client_give_item(102);
 			apF8_Down = 1;
 		}
 	}
@@ -1302,18 +1327,18 @@ void CK_CheckKeys()
 		apF8_Down = 0;
 	}
 
-	//AP test: toggle pogo
-	if (IN_GetKeyState(IN_SC_F9))
+	//AP test: item receive and injection
+	if (IN_GetKeyState(IN_SC_Control) && IN_GetKeyState(IN_SC_Y))
 	{
-		if (!apF9_Down)	
-		{	
-			ap_toggle_pogo();
-			apF9_Down = 1;
+		if (!apci_Down)
+		{
+			ap_client_give_item(100399);
+			apci_Down = 1;
 		}
 	}
 	else
 	{
-		apF9_Down = 0;
+		apci_Down = 0;
 	}
 
 	//AP test: give red keygem
