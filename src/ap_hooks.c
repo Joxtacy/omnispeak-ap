@@ -47,6 +47,7 @@ bool ap_has_level(int level, int ep)
 	{
 		switch (level)
 		{
+			case AP_LEVEL_BEAN_WITH_BACON_MEGAROCKET:
 			case AP_LEVEL_BORDER_VILLAGE:
 			case AP_LEVEL_SLUG_VILLAGE:
 			case AP_LEVEL_THE_PERILOUS_PIT:

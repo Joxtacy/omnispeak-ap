@@ -110,6 +110,7 @@ LIBASOUND = -lasound
 LIBIEEE1284 = -lieee1284
 LIBOPLHW = -loplhw
 LIBS += -lws2_32
+LIBS += -lz
 SDL_CONFIG_PREFIX =
 OUTDIR_SUFFIX := INVALID
 
@@ -501,6 +502,10 @@ $(OBJDIR)/id_vl_vk_%.h: id_vl_vk_shader.%
 	glslc -mfmt=c $< -o $@
 
 $(OBJDIR)/%.o: %.c $(SDL_DIR)
+	@mkdir -p $(dir $@)
+	$(CXX) $(SYSFLAGS) $(CXXFLAGS) $(SDL_CFLAGS) -c -MMD -o $@ $<
+
+$(OBJDIR)/%.o: %.cpp $(SDL_DIR)
 	@mkdir -p $(dir $@)
 	$(CXX) $(SYSFLAGS) $(CXXFLAGS) $(SDL_CFLAGS) -c -MMD -o $@ $<
 

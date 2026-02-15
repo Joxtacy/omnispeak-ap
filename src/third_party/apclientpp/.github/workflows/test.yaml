@@ -1,0 +1,61 @@
+name: test
+
+on:
+  push:
+    paths:
+      - '.github/workflows/test.yaml'
+      - '**.hpp'
+      - '**.cpp'
+      - '**/CMakeLists.txt'
+  pull_request:
+    paths:
+      - '.github/workflows/test.yaml'
+      - '**.hpp'
+      - '**.cpp'
+      - '**/CMakeLists.txt'
+
+jobs:
+  ctest:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+          - os: windows-latest
+          - os: macos-latest
+          # TODO: mingw, but see scan-build.yaml for why not. Contributions are welcome.
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies (apt)
+        if: ${{ startsWith(matrix.os, 'ubuntu') }}
+        run: |
+          sudo apt-get update -y -qq
+          sudo apt-get install coreutils build-essential libssl-dev
+      - name: ctest
+        run: |
+          mkdir build
+          cd build/
+          cmake -D CMAKE_BUILD_TYPE=Debug ..
+          cmake --build .
+          ctest . -C Debug
+
+  embuild:
+    # Just build with emscripten. There is no way to test the build yet.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup emsdk
+        uses: mymindstorm/setup-emsdk@6ab9eb1bda2574c4ddb79809fc9247783eaf9021
+        with:
+          version: 4.0.21
+          actions-cache-folder: 'emsdk-cache'
+      - name: Verify emsdk
+        run: emcc -v
+      - name: build
+        run: |
+          mkdir build
+          cd build/
+          emcmake cmake ..
+          emmake make

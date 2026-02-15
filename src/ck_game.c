@@ -878,9 +878,6 @@ extern CK_Difficulty ck_startingDifficulty;
 bool CK6_CreatureQuestion();
 void CK_GameLoop()
 {
-	//Poll the AP Client
-	ap_client_poll();
-
 	if (!ck_storeDemo)
 	{
 		if (!CK6_CreatureQuestion())

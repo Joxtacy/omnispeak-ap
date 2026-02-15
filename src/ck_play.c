@@ -2336,6 +2336,9 @@ void CK_PlayLoop()
 	while (ck_gameState.levelState == LS_Playing)
 	{
 
+		//AP Client Poll
+		ap_client_poll();
+
 		IN_PumpEvents();
 		CK_HandleInput();
 
