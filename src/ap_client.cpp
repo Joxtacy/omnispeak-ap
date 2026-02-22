@@ -24,12 +24,15 @@ static char ap_server[256] = {0};
 static char ap_slotname[64] = {0};
 static char ap_password[64] = {0};
 static int ap_port = 0;
+static int episode = 0;
+static bool keen4done = false;
+static bool keen5done = false;
 
 static APClient* ap = nullptr;
 
 static int ap_translate_item(int id);
 static void ap_load_connection_info(void);
-
+static bool ap_announce_victory(bool keen4done, bool keen5done);
 
 void ap_client_init(void)
 {
@@ -43,7 +46,29 @@ void ap_client_init(void)
 
     #include "apuuid.hpp"
 
-	std::string uri = std::string("ws://") + ap_server + ":" + std::to_string(ap_port);
+	std::string uri;
+
+	std::string server = ap_server;
+
+	// If user already included ws:// or wss://, use it as-is
+	if (server.rfind("ws://", 0) == 0 || server.rfind("wss://", 0) == 0)
+	{
+		uri = server;
+	}
+	else
+	{
+		// Default to secure for non-localhost
+		if (server == "127.0.0.1" || server == "localhost")
+			uri = "ws://" + server + ":" + std::to_string(ap_port);
+		else
+			uri = "wss://" + server + ":" + std::to_string(ap_port) + "/";
+	}
+
+	FILE *f = fopen("ap_log.txt", "a");
+	if (f) {
+		fprintf(f, "[AP] URI: %s\n", uri.c_str());
+		fclose(f);
+	}
 
 	ap = new APClient(
 		ap_get_uuid("ap_uuid.txt", ap_server),
@@ -59,6 +84,22 @@ void ap_client_init(void)
 		}
 	});
 
+	ap->set_socket_disconnected_handler([]() {
+		FILE *f = fopen("ap_log.txt", "a");
+		if (f) {
+			fprintf(f, "[AP] Socket disconnected\n");
+			fclose(f);
+		}
+	});
+
+	ap->set_socket_error_handler([](const std::string& err) {
+		FILE *f = fopen("ap_log.txt", "a");
+		if (f) {
+			fprintf(f, "[AP] Socket error: %s\n", err.c_str());
+			fclose(f);
+		}
+	});
+
 	ap->set_room_info_handler([&]() {
 		FILE *f = fopen("ap_log.txt", "a");
 		if (f) {
@@ -69,30 +110,39 @@ void ap_client_init(void)
 		APClient::Version ver;
 		ver.ma = 0;
 		ver.mi = 6;
-		ver.build = 4;
+		ver.build = 6;
 
 		ap->ConnectSlot(
 			ap_slotname,
 			ap_password,
 			7,
-			{},
+			{"NoText"},
 			ver
 		);
 	});
 
-    ap->set_slot_connected_handler([](const nlohmann::json& slot_data) {
-    	FILE *f = fopen("ap_log.txt", "a");
-		if (f)
-		{
-			fprintf(f, "[AP] Slot connected\n");
-			fclose(f);
-		}
-	});
+   ap->set_slot_connected_handler([](const nlohmann::json& slot_data) {
+    if (slot_data.contains("episode_select"))
+    {
+        auto& val = slot_data["episode_select"];
+        if (val.is_number())
+            episode = val.get<int>();
+        else if (val.is_string())
+            episode = std::stoi(val.get<std::string>());
+    }
+    FILE *f = fopen("ap_log.txt", "a");
+    if (f) {
+        fprintf(f, "[AP] Episode raw value: %s\n", slot_data.contains("episode_select") ? 
+            slot_data["episode_select"].dump().c_str() : "not found");
+        fprintf(f, "[AP] Episode Number: %d\n", episode);
+        fclose(f);
+    }
+});
 
     ap->set_items_received_handler(
 		[](const std::list<APClient::NetworkItem>& items) {
-			for (auto& item : items)
-				ap_client_give_item(item.item);	
+		for (auto& item : items)
+			ap_client_give_item(item.item);
 	});
 
 }
@@ -153,16 +203,20 @@ void ap_client_give_item(int item_id)
 	if (local_id < 0 || local_id >= AP_MAX_ITEMS)
 		return;
 
-	if (ap_items[local_id])
-		return;
+	//do not mark filler as received so we can obtain multiple
+	if (local_id != AP_ITEM_EXTRA_KEEN && local_id != AP_ITEM_STUNNER_AMMO)
+	{
+		if (ap_items[local_id])
+			return;
 
-	ap_items[local_id] = true;
+		ap_items[local_id] = true;
+	}
 
 	//apply level required items immediately if in the level
 	if (ap_current_level > 0)
 		ap_apply_level_items(ap_current_level, ap_current_episode);
 
-	//apply abilities immediately when received
+	//apply abilities + filler immediately when received
 	switch (local_id)
 	{
 		case AP_ITEM_POGO:
@@ -174,7 +228,20 @@ void ap_client_give_item(int item_id)
 		case AP_ITEM_WETSUIT:
 			ck_gameState.ep.ck4.wetsuit = 1;
 			break;
+		case AP_ITEM_STUNNER_AMMO:
+			ck_gameState.numShots++;
+			break;
+		case AP_ITEM_EXTRA_KEEN:
+			ck_gameState.numLives++;
+			break;
+		case AP_ITEM_KEEN4_COMPLETE:
+			keen4done = true;
+			break;
+		case AP_ITEM_KEEN5_COMPLETE:
+			keen5done = true;
+			break;
 	}
+	ap_announce_victory(keen4done, keen5done);
 
 	FILE *f = fopen("ap_log.txt", "a");
 	if (f)
@@ -182,6 +249,28 @@ void ap_client_give_item(int item_id)
 		fprintf(f, "[AP] Item Received: %d -> local: %d \n", item_id, local_id);
 		fclose(f);
 	}
+}
+
+static bool ap_announce_victory(bool keen4done, bool keen5done)
+{
+	if (!ap || ap->get_state() != APClient::State::SLOT_CONNECTED) return false;
+
+	bool victory = false;
+
+	if (episode == 1)
+		victory = keen4done;
+	else if (episode == 2)
+		victory = keen5done;
+	else
+		victory = keen4done && keen5done;
+
+	if (victory)
+	{
+		ap->StatusUpdate(APClient::ClientStatus::GOAL);
+		return true;
+	}
+
+	return false;
 }
 
 void ap_apply_level_items(int level, int ep)
@@ -199,8 +288,12 @@ void ap_apply_level_items(int level, int ep)
 					ck_gameState.keyGems[0] = ck_gameState.keyGems[2] = 1;
 				break;
 			case AP_LEVEL_CAVE_OF_THE_DESCENDENTS:
-				if (ap_has_item(AP_ITEM_COTD_RED_GEM) || ap_has_item(AP_ITEM_COTD_GEMSET))
+				if (ap_has_item(AP_ITEM_COTD_RED_GEM))
 					ck_gameState.keyGems[0] = 1;
+				if (ap_has_item(AP_ITEM_COTD_YELLOW_GEM))
+					ck_gameState.keyGems[1] = 1;
+				if (ap_has_item(AP_ITEM_COTD_GEMSET))
+					ck_gameState.keyGems[0] = ck_gameState.keyGems[1] = 1;
 				break;
 			case AP_LEVEL_CRYSTALUS:
 				if (ap_has_item(AP_ITEM_CRYS_RED_GEM))
@@ -230,7 +323,7 @@ void ap_apply_level_items(int level, int ep)
 				if (ap_has_item(AP_ITEM_POS_BLUE_GEM) || ap_has_item(AP_ITEM_POS_GEMSET))
 					ck_gameState.keyGems[2] = 1;
 				break;
-			case AP_LEVEL_PYRAMID_OF_THE_GNOSTICENE_ANCEINTS:
+			case AP_LEVEL_PYRAMID_OF_THE_GNOSTICENE_ANCIENTS:
 				if (ap_has_item(AP_ITEM_POTGA_RED_GEM))
 					ck_gameState.keyGems[0] = 1;
 				if (ap_has_item(AP_ITEM_POTGA_GREEN_GEM))
@@ -410,6 +503,7 @@ static int ap_translate_item(int id)
 		case 100399: return AP_ITEM_PP_GEMSET;
 		case 1004: return AP_ITEM_COTD;
 		case 100400: return AP_ITEM_COTD_RED_GEM;
+		case 100401: return AP_ITEM_COTD_YELLOW_GEM;
 		case 100499: return AP_ITEM_COTD_GEMSET;
 		case 1005: return AP_ITEM_COC;
 		case 1006: return AP_ITEM_CRYS;
@@ -428,7 +522,7 @@ static int ap_translate_item(int id)
 		case 101099: return AP_ITEM_LO_GEMSET;
 		case 1011: return AP_ITEM_POTM;
 		case 101101: return AP_ITEM_POTM_YELLOW_GEM;
-		case 101199: return AP_ITEM_POTM_YELLOW_GEM;
+		case 101199: return AP_ITEM_POTM_GEMSET;
 		case 1012: return AP_ITEM_POS;
 		case 101202: return AP_ITEM_POS_BLUE_GEM;
 		case 101299: return AP_ITEM_POS_GEMSET;
@@ -505,13 +599,15 @@ static int ap_translate_item(int id)
 		case 201100: return AP_ITEM_GDH_RED_GEM;
 		case 201103: return AP_ITEM_GDH_GREEN_GEM;
 		case 201104: return AP_ITEM_GDH_KEYCARD;
-		case 201105: return AP_ITEM_GDH_GEMSET;
+		case 201199: return AP_ITEM_GDH_GEMSET;
 		case 2012: return AP_ITEM_QED;
 		case 201200: return AP_ITEM_QED_RED_GEM;
 		case 201201: return AP_ITEM_QED_YELLOW_GEM;
 		case 201202: return AP_ITEM_QED_BLUE_GEM;
 		case 201203: return AP_ITEM_QED_GREEN_GEM;
 		case 201299: return AP_ITEM_QED_GEMSET;
+		case 19999: return AP_ITEM_KEEN4_COMPLETE;
+		case 29999: return AP_ITEM_KEEN5_COMPLETE;
 	}
 	return -1;
 }

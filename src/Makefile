@@ -109,8 +109,7 @@ LIBVULKAN = -lvulkan
 LIBASOUND = -lasound
 LIBIEEE1284 = -lieee1284
 LIBOPLHW = -loplhw
-LIBS += -lws2_32
-LIBS += -lz
+LIBS += -lssl -lcrypto -lcrypt32 -lz -lws2_32 -lopengl32 -lm
 SDL_CONFIG_PREFIX =
 OUTDIR_SUFFIX := INVALID
 

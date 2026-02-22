@@ -43,32 +43,52 @@ void ap_on_score_increase(int score)
 
 bool ap_has_level(int level, int ep)
 {
-	if (ep == 1) //CK4 is episode 1
-	{
-		switch (level)
-		{
-			case AP_LEVEL_BEAN_WITH_BACON_MEGAROCKET:
-			case AP_LEVEL_BORDER_VILLAGE:
-			case AP_LEVEL_SLUG_VILLAGE:
-			case AP_LEVEL_THE_PERILOUS_PIT:
-			case AP_LEVEL_MIRAGIA:
-				return true;
-			default:
-				return false;
-		}
-	}
-	else if (ep == 2) //CK5 is episode 2
-	{
-		switch (level)
-		{
-			case AP_LEVEL_ION_VENTILATION_SYSTEM:
-			case AP_LEVEL_SECURITY_CENTER:
-				return true;
-			default:
-				return false;
-		}
-	}
+	int ap_level_to_item_ck4[]{
+		0,
+		AP_ITEM_BV,
+		AP_ITEM_SV,
+		AP_ITEM_PP,
+		AP_ITEM_COTD,
+		AP_ITEM_COC,
+		AP_ITEM_CRYS,
+		AP_ITEM_HI,
+		AP_ITEM_SY,
+		AP_ITEM_MIR,
+		AP_ITEM_LO,
+		AP_ITEM_POTM,
+		AP_ITEM_POS,
+		AP_ITEM_POTGA,
+		AP_ITEM_POTF,
+		AP_ITEM_IOT,
+		AP_ITEM_IOF,
+		AP_ITEM_WOW,
+		AP_ITEM_BWBMR
+	};
+
+	int ap_level_to_item_ck5[]{
+		0,
+		AP_ITEM_IVS,
+		AP_ITEM_SC,
+		AP_ITEM_DTV,
+		AP_ITEM_EFS,
+		AP_ITEM_DTB,
+		AP_ITEM_RCC,
+		AP_ITEM_DTS,
+		AP_ITEM_NBI,
+		AP_ITEM_DTT,
+		AP_ITEM_BMI,
+		AP_ITEM_GDH,
+		AP_ITEM_QED
+	};
+
+	if (ep == 1)
+		return ap_has_item(ap_level_to_item_ck4[level]);
+
+	if (ep == 2)
+		return ap_has_item(ap_level_to_item_ck5[level]);
+
 	return false;
+
 }
 
 void ap_show_message(const char* msg)
