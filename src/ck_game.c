@@ -1053,6 +1053,7 @@ void CK_GameLoop()
 #endif
 #ifdef WITH_KEEN5
 		case LS_KorathFuse:
+			ap_on_level_complete();
 			if (ck_currentEpisode->ep == EP_CK5)
 			{
 				// The level has been ended by fuse destruction

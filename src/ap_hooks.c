@@ -82,7 +82,21 @@ bool ap_has_level(int level, int ep)
 	};
 
 	if (ep == 1)
-		return ap_has_item(ap_level_to_item_ck4[level]);
+		if (level <= 17)
+		{
+			return ap_has_item(ap_level_to_item_ck4[level]);
+		}
+		else
+		{
+			//bwbm should require all other levels at least reachable
+			for (int i = 1; i <= 18; i++)
+			{
+				if (i == 14) continue; //skip pyramid of the forbidden
+				if (!ap_has_item(ap_level_to_item_ck4[i]))
+					return false;
+			}
+			return true;
+		}
 
 	if (ep == 2)
 		return ap_has_item(ap_level_to_item_ck5[level]);
