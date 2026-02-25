@@ -625,6 +625,7 @@ void CK_LoadLevel(bool doCache, bool silent)
 	if (ca_mapOn == 0)
 	{
 		CK_MapLevelMarkAsDone();
+		ap_open_blocks();
 	}
 
 	RF_MarkTileGraphics();

@@ -16,6 +16,7 @@ void ap_on_security_card_get(void);
 void ap_on_wetsuit_get(void);
 void ap_on_score_increase(int points);
 bool ap_has_level(int level, int episode);
+void ap_open_blocks(void);
 void ap_show_message(const char* msg);
 
 #endif

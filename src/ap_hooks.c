@@ -105,6 +105,29 @@ bool ap_has_level(int level, int ep)
 
 }
 
+void ap_open_blocks(void)
+{
+    int x, y;
+    uint16_t *pw;
+    int flags;
+
+    pw = CA_TilePtrAtPos(0, 0, 2); // info layer
+
+    for (y = 0; y < CA_GetMapHeight(); y++)
+    {
+        for (x = 0; x < CA_GetMapWidth(); x++, pw++)
+        {
+            flags = (*pw) >> 8;
+
+            if (flags == 0xD0)
+            {
+                // remove blocking foreground tile
+                CA_SetTileAtPos(x, y, 1, 0);
+            }
+        }
+    }
+}
+
 void ap_show_message(const char* msg)
 {
 	US_CenterWindow(20, 3);
