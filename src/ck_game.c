@@ -1072,6 +1072,7 @@ void CK_GameLoop()
 			 * purge_chunks()
 			 * RF_Reset();
 			 */
+			ap_on_level_complete();
 			CK_EndingPurge();
 			VL_FixRefreshBuffer();
 			help_endgame();

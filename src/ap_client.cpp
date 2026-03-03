@@ -64,12 +64,6 @@ void ap_client_init(void)
 			uri = "wss://" + server + ":" + std::to_string(ap_port) + "/";
 	}
 
-	FILE *f = fopen("ap_log.txt", "a");
-	if (f) {
-		fprintf(f, "[AP] URI: %s\n", uri.c_str());
-		fclose(f);
-	}
-
 	ap = new APClient(
 		ap_get_uuid("ap_uuid.txt", ap_server),
 		"Commander Keen",
@@ -130,13 +124,6 @@ void ap_client_init(void)
         else if (val.is_string())
             episode = std::stoi(val.get<std::string>());
     }
-    FILE *f = fopen("ap_log.txt", "a");
-    if (f) {
-        fprintf(f, "[AP] Episode raw value: %s\n", slot_data.contains("episode_select") ? 
-            slot_data["episode_select"].dump().c_str() : "not found");
-        fprintf(f, "[AP] Episode Number: %d\n", episode);
-        fclose(f);
-    }
 });
 
     ap->set_items_received_handler(
@@ -167,11 +154,6 @@ void ap_client_location_check(int location_id)
 	std::list<int64_t> checks;
 	checks.push_back(location_id);
 	ap->LocationChecks(checks);
-		FILE *f = fopen("ap_log.txt", "a");
-		if (f) {
-			fprintf(f, "[AP] Sending check: %d\n", location_id);
-			fclose(f);
-		}
 }
 
 bool ap_is_checked(int id)
@@ -242,13 +224,6 @@ void ap_client_give_item(int item_id)
 			break;
 	}
 	ap_announce_victory(keen4done, keen5done);
-
-	FILE *f = fopen("ap_log.txt", "a");
-	if (f)
-	{
-		fprintf(f, "[AP] Item Received: %d -> local: %d \n", item_id, local_id);
-		fclose(f);
-	}
 }
 
 static bool ap_announce_victory(bool keen4done, bool keen5done)
