@@ -1286,84 +1286,84 @@ void CK_CheckKeys()
 	}
 
 	//AP test: toggle pogo
-	if (IN_GetKeyState(IN_SC_F9))
-	{
-		if (!apF9_Down)	
-		{	
-			ap_client_give_item(101);
-			apF9_Down = 1;
-		}
-	}
-	else
-	{
-		apF9_Down = 0;
-	}
+	//if (IN_GetKeyState(IN_SC_F9))
+	//{
+	//	if (!apF9_Down)	
+	//	{	
+	//		ap_client_give_item(101);
+	//		apF9_Down = 1;
+	//	}
+	//}
+	//else
+	//{
+	//	apF9_Down = 0;
+	//}
 
 	//AP test: toggle wetsuit
-	if (IN_GetKeyState(IN_SC_Control) && IN_GetKeyState(IN_SC_T))
-	{
-		if (!apct_Down)	
-		{	
-			ap_client_give_item(103);
-			apct_Down = 1;
-		}
-	}
-	else
-	{
-		apct_Down = 0;
-	}
+	//if (IN_GetKeyState(IN_SC_Control) && IN_GetKeyState(IN_SC_T))
+	//{
+	//	if (!apct_Down)	
+	//	{	
+	//		ap_client_give_item(103);
+	//		apct_Down = 1;
+	//	}
+	//}
+	//else
+	//{
+	//	apct_Down = 0;
+	//}
 
 	//AP test: toggle stunner
-	if (IN_GetKeyState(IN_SC_F8))
-	{
-		if (!apF8_Down)
-		{
-			ap_client_give_item(102);
-			apF8_Down = 1;
-		}
-	}
-	else
-	{
-		apF8_Down = 0;
-	}
+	//if (IN_GetKeyState(IN_SC_F8))
+	//{
+	//	if (!apF8_Down)
+	//	{
+	//		ap_client_give_item(102);
+	//		apF8_Down = 1;
+	//	}
+	//}
+	//else
+	//{
+	//	apF8_Down = 0;
+	//}
 
 	//AP test: item receive and injection
-	if (IN_GetKeyState(IN_SC_Control) && IN_GetKeyState(IN_SC_Y))
-	{
-		if (!apci_Down)
-		{
-			ap_client_give_item(100399);
-			apci_Down = 1;
-		}
-	}
-	else
-	{
-		apci_Down = 0;
-	}
+	//if (IN_GetKeyState(IN_SC_Control) && IN_GetKeyState(IN_SC_Y))
+	//{
+	//	if (!apci_Down)
+	//	{
+	//		ap_client_give_item(100399);
+	//		apci_Down = 1;
+	//	}
+	//}
+	//else
+	//{
+	//	apci_Down = 0;
+	//}
 
 	//AP test: give red keygem
-	if (IN_GetKeyState(IN_SC_U))
-	{
-		ck_gameState.keyGems[0] = 1;
-	}
+	//if (IN_GetKeyState(IN_SC_U))
+	//{
+	//	ck_gameState.keyGems[0] = 1;
+	//}
 
 	//AP test: give yellow keygem
-	if (IN_GetKeyState(IN_SC_I))
-	{
-		ck_gameState.keyGems[1] = 1;
-	}
+	//if (IN_GetKeyState(IN_SC_I))
+	//{
+	//	ck_gameState.keyGems[1] = 1;
+	//}
 
 	//AP test: give blue keygem
-	if (IN_GetKeyState(IN_SC_O))
-	{
-		ck_gameState.keyGems[2] = 1;
-	}
+	//if (IN_GetKeyState(IN_SC_O))
+	//{
+	//	ck_gameState.keyGems[2] = 1;
+	//}
 
 	//AP test: give green keygem
-	if (IN_GetKeyState(IN_SC_P))
-	{
-		ck_gameState.keyGems[3] = 1;
-	}
+	//if (IN_GetKeyState(IN_SC_P))
+	//{
+	//	ck_gameState.keyGems[3] = 1;
+	//}
 	
 	// Debug Keys
 	if (IN_GetKeyState(IN_SC_F10))
