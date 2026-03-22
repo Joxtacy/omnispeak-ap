@@ -21,6 +21,7 @@ void ap_on_level_complete(void)
 {
 	int location_id = LOC_LEVEL_COMPLETE(ap_current_episode, ap_current_level);
 	ap_client_location_check(location_id);
+	ap_check_goal();
 }
 
 void ap_on_keygem_get(int item)

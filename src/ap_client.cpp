@@ -18,8 +18,6 @@
 
 static bool ap_items[AP_MAX_ITEMS];
 static bool ap_initialized = false;
-static int ap_locations_checked[AP_MAX_LOCATIONS];
-static int ap_check_count = 0;
 static char ap_server[256] = {0};
 static char ap_slotname[64] = {0};
 static char ap_password[64] = {0};
@@ -37,8 +35,6 @@ static bool ap_announce_victory(bool keen4done, bool keen5done);
 void ap_client_init(void)
 {
     memset(ap_items, 0, sizeof(ap_items));
-    memset(ap_locations_checked, 0, sizeof(ap_locations_checked));
-    ap_check_count = 0;
 
 	ap_initialized = true;
 
@@ -124,6 +120,10 @@ void ap_client_init(void)
         else if (val.is_string())
             episode = std::stoi(val.get<std::string>());
     }
+
+	keen4done = ap_is_checked(LOC_LEVEL_COMPLETE(AP_EPISODE_CK4, AP_LEVEL_BEAN_WITH_BACON_MEGAROCKET));
+	keen5done = ap_is_checked(LOC_LEVEL_COMPLETE(AP_EPISODE_CK5, AP_LEVEL_QUANTUM_EXPLOSION_DYNAMO));
+	ap_show_message("Slot Connected.");
 });
 
     ap->set_items_received_handler(
@@ -142,26 +142,31 @@ void ap_client_poll(void)
 
 void ap_client_location_check(int location_id)
 {
-    if (!ap)
-        return;
+    if (!ap) return;
+    if (ap_is_checked(location_id)) return;
 
-    if (ap_is_checked(location_id))
-        return;
+    std::list<int64_t> checks;
+    checks.push_back(location_id);
+    ap->LocationChecks(checks);
+}
 
-    if (ap_check_count < AP_MAX_LOCATIONS)
-   		ap_locations_checked[ap_check_count++] = location_id;
+void ap_check_goal(void)
+{
+	if (ap_current_episode == AP_EPISODE_CK4 &&
+		ap_current_level == AP_LEVEL_BEAN_WITH_BACON_MEGAROCKET)
+		keen4done = true;
+	if (ap_current_episode == AP_EPISODE_CK5 &&
+		ap_current_level == AP_LEVEL_QUANTUM_EXPLOSION_DYNAMO)
+		keen5done = true;
 
-	std::list<int64_t> checks;
-	checks.push_back(location_id);
-	ap->LocationChecks(checks);
+	ap_announce_victory(keen4done, keen5done);
 }
 
 bool ap_is_checked(int id)
 {
-	for (int i=0; i < ap_check_count; i++)
-		if (ap_locations_checked[i] == id)
-			return true;
-	return false;
+	if (!ap) return false;
+	auto checked = ap->get_checked_locations();
+	return checked.count(id) > 0;
 }
 
 bool ap_has_item(int local_id)
@@ -216,14 +221,7 @@ void ap_client_give_item(int item_id)
 		case AP_ITEM_EXTRA_KEEN:
 			ck_gameState.numLives++;
 			break;
-		case AP_ITEM_KEEN4_COMPLETE:
-			keen4done = true;
-			break;
-		case AP_ITEM_KEEN5_COMPLETE:
-			keen5done = true;
-			break;
 	}
-	ap_announce_victory(keen4done, keen5done);
 }
 
 static bool ap_announce_victory(bool keen4done, bool keen5done)
@@ -581,8 +579,6 @@ static int ap_translate_item(int id)
 		case 201202: return AP_ITEM_QED_BLUE_GEM;
 		case 201203: return AP_ITEM_QED_GREEN_GEM;
 		case 201299: return AP_ITEM_QED_GEMSET;
-		case 19999: return AP_ITEM_KEEN4_COMPLETE;
-		case 29999: return AP_ITEM_KEEN5_COMPLETE;
 	}
 	return -1;
 }
