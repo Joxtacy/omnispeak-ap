@@ -63,7 +63,8 @@ void ap_client_init(void)
 	ap = new APClient(
 		ap_get_uuid("ap_uuid.txt", ap_server),
 		"Commander Keen",
-		uri
+		uri,
+		"cacert.pem"
 	);
 
     ap->set_socket_connected_handler([]() {
