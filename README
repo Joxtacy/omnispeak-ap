@@ -1,3 +1,64 @@
+======================================================================
+Archipelago
+======================================================================
+This is a forked version of Omnispeak (https://github.com/sulix/omnispeak),
+a Commander Keen source port. It adds support for the Archipelago multiworld
+randomizer.
+
+QUICKSTART:
+	1. Download the current omnispeak-ap release.
+	2. Copy the required game files (see below) into the omnispeak directory.
+	3. Edit connection.txt with your server, port, and slot name.
+	4. Launch AP Keen Launcher.exe and select your episode.
+	5. Load into the world map to connect to server.
+
+In order to play the game in a multiworld, you must provide copies of the 
+following files from your legally obtained copy of the game:
+	-GAMEMAPS.CK4
+	-EGAGRAPH.CK4
+	-AUDIO.CK4
+	-GAMEMAPS.CK5
+	-EGAGRAPH.CK5
+	-AUDIO.CK5
+Simply place these files in the same directory as the omnispeak.exe executable.
+The Commander Keen Complete Pack on both GOG and Steam are compatible. You only 
+need the files for the episode(s) you plan to play. You can play 4, 5, or both.
+Episode 6 is not supported at this time.
+
+To connect to the server, you must edit the connection.txt file with your server,
+port, and slot name. Then start your game. After loading into the world map, you
+should see a message indicating you are connected to the server. If it fails, 
+verify your connection.txt settings or check ap_log.txt for possible errors.
+
+A launcher is provided to easily select which episode you wish to play. Simply 
+launch AP Keen Launcher.exe and click the button for the desired episode.
+
+At current, there is no in game feedback for when an item is sent or received.
+It is highly recommended to utilize a text client and/or Universal Tracker when
+playing.
+
+The end goal will be to complete the final level of each episode being played.
+	-CK5: Quantum Explosion Dynamo
+	-Ck4: Bean-With-Bacon Megarocket
+	-All other levels must be unlocked in the episode to access the final level.
+
+A few changes were made to make the game more AP friendly.
+	-Levels will be inaccessible until the level unlock is received.
+	-CTRL+R while inside a level will allow graceful exit to prevent softlocks.
+	-Levels can be replayed at anytime after they are unlocked.
+	-Overworld gates are removed (e.g. Border Village does not need to be
+	completed before accessing the rest of the map in CK4, Defense Tunnel Vlook
+	does not need to be completed before Energy Flow Systems in CK5, etc). In 
+	CK5, the four non defense tunnel hub levels will still need to be completed 
+	to access the final two levels.
+	-Council members no longer trigger the end of the game.
+
+Download the apworld file from the releases page:
+https://github.com/kodbyte/Archipelago-Keen/releases
+
+======================================================================
+Omnispeak
+======================================================================
 Omnispeak: An reimplementation of "Commander Keen in Goodbye Galaxy!"
 
 Omnispeak is an open-source reimplementation of Commander Keen episodes 4, 5,
@@ -39,19 +100,14 @@ them in the same directory as the 'omnispeak' binary:
 	* AUDIO.CK?
 
 You'll also need the files from the 'data' directory corresponding to your
-version of Keen. For Keen 6 in particular, you'll need to check if you have
-version 1.4 or version 1.5, and copy keen6e14 and keen6e15 accordingly. The
-initialisation screen contains the version of the game.
+version of Keen. 
 
 To run the game, simply switch to the directory with the data files, and run:
 	./omnispeak
 
 Omnispeak supports several command-line options, some of which are:
-	/EPISODE <episode>
-		- Runs the given episode of Commander Keen
-		  This should be the filename of the 'EPISODE.CKx' file for the
-		  given episode. But just using the numbers 4, 5, and 6 work as
-		  well.
+	/EPISODE <4,5,6,6v14,6v15>
+		- Runs the given episode/version of Commander Keen
 	/GAMEPATH <directory>
 		- Sets the path to the game data files.
 	/USERPATH <directory>
@@ -68,12 +124,11 @@ Omnispeak supports several command-line options, some of which are:
 		- Disables Joystick detection.
 	/NOCOPY
 		- Bypasses the "Creature Question" screen in Keen 6.
-	/AUDIOSYNC
-		- When using SDL-based sound backends, use the audio clock
-		  rather than the system clock. Available as the
-		  'sd_sdl_audioSync' config option.
-		  (Enabling this ensures perfect audio timing, at the expense
-		  of worse frame pacing.)
+	/NOAUDIOSYNC
+		- When using SDL-based sound backends, use the system clock
+		  rather than the audio clock. Available as the
+		  'sd_sdl_noAudioSync' config option.
+		  (Works around issues with some SDL audio backends under wine)
 	/DEMOFILE <filename>
 		- Plays the demo recorded with Keen's F10+D cheat in filename.
 
