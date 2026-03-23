@@ -107,7 +107,7 @@ void ap_client_init(void)
 			ap_slotname,
 			ap_password,
 			7,
-			{"NoText"},
+			{"AP", "NoText"},
 			ver
 		);
 	});
