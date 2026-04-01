@@ -10,5 +10,7 @@ bool ap_is_checked(int id);
 bool ap_has_item(int item_id);
 void ap_client_give_item(int item_id);
 void ap_apply_level_items(int level, int ep);
+void ap_reapply_item(int local_id);
+void ap_resync_items();
 
 #endif

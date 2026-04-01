@@ -632,3 +632,33 @@ static void ap_load_connection_info(void)
         fclose(log);
     }
 }
+
+void ap_reapply_item(int local_id)
+{
+	switch(local_id)
+	{
+		case AP_ITEM_POGO:
+			ap_has_pogo = 1;
+			break;
+		case AP_ITEM_STUNNER:
+			ap_has_stunner = 1;
+			break;
+		case AP_ITEM_WETSUIT:
+			ck_gameState.ep.ck4.wetsuit = 1;
+			break;
+	}
+}
+
+void ap_resync_items()
+{
+	ap_has_pogo = 0;
+	ap_has_stunner = 0;
+	ck_gameState.ep.ck4.wetsuit = 0;
+
+	for (int i = 0; i < AP_MAX_ITEMS; i++)
+	{
+		if (ap_items[i])
+			ap_reapply_item(i);
+	}
+
+}

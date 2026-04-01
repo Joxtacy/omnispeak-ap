@@ -513,6 +513,8 @@ bool CK_LoadGame(FS_File fp, bool fromMenu)
 	if (ck_currentEpisode->ep == EP_CK5)
 		ck_gameState.ep.ck5.fusesRemaining = prevFuses;
 
+	ap_resync_items();
+
 	return true;
 }
 
