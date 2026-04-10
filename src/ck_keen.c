@@ -1121,7 +1121,9 @@ void CK_KeenJumpThink(CK_object *obj)
 		}
 		else // Normal or Hard
 		{
-			CK_PhysGravityHigh(obj);
+			//CK_PhysGravityHigh(obj);
+			//AP - normalize gravity so logic is consistent
+			CK_PhysGravityMid(obj);
 		}
 
 		if (obj->velY > 0 && obj->currentAction != CK_ACTION(CK_ACT_keenFall1) && obj->currentAction != CK_ACTION(CK_ACT_keenFall2))
@@ -1372,7 +1374,9 @@ void CK_KeenPogoThink(CK_object *obj)
 		}
 		else
 		{
-			CK_PhysGravityHigh(obj);
+			//CK_PhysGravityHigh(obj);
+			//AP - normalize gravity for consistent logic
+			CK_PhysGravityMid(obj);
 		}
 	}
 	else
