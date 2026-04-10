@@ -614,6 +614,9 @@ void CK_LoadLevel(bool doCache, bool silent)
 	ap_current_level = ck_gameState.currentLevel;
 	ap_current_episode = ck_currentEpisode -> ep;
 
+	//Notify tracker of current level via DataStorage
+	ap_datastorage_set_level(ap_current_level, ap_current_episode);
+
 	//apply ap items received to Level
 	ap_apply_level_items(ap_current_level, ap_current_episode);
 
