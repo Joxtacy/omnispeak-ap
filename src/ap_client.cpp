@@ -604,20 +604,20 @@ static void ap_load_connection_info(void)
     {
         if (strncmp(line, "server:", 7) == 0)
         {
-            sscanf(line + 7, "%255s", ap_server);
+            sscanf(line + 7, " %255[^\n]", ap_server);
         }
         else if (strncmp(line, "port:", 5) == 0)
         {
             sscanf(line + 5, "%d", &ap_port);
         }
-		else if (strncmp(line, "slotname:", 9) == 0)
-		{
-			sscanf(line + 9, "%63s", ap_slotname);
-		}
-		else if (strncmp(line, "password:", 9) == 0)
-		{
-			sscanf(line + 9, "%63s", ap_password);
-		}
+        else if (strncmp(line, "slotname:", 9) == 0)
+        {
+            sscanf(line + 9, " %63[^\n]", ap_slotname);
+        }
+        else if (strncmp(line, "password:", 9) == 0)
+        {
+            sscanf(line + 9, " %63[^\n]", ap_password);
+        }
     }
 
     fclose(f);
