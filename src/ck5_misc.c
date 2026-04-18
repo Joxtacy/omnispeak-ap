@@ -30,6 +30,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "ck_phys.h"
 #include "ck_play.h"
 #include "ck5_ep.h"
+#include "ap_client.h"
 
 CK_EpisodeDef ck5_episode = {
 	EP_CK5,
@@ -766,6 +767,7 @@ void CK5_ExplodeGalaxy()
 	for (int i = 0; i < 18; i++)
 	{
 		IN_PumpEvents();
+		ap_client_poll();
 
 		endsplosion_palette[8] = endsplosion_pal_change[0][i];
 		endsplosion_palette[7] = endsplosion_pal_change[0][i];
@@ -788,6 +790,7 @@ void CK5_ExplodeGalaxy()
 	for (int i = 0; i < 30; i++)
 	{
 		IN_PumpEvents();
+		ap_client_poll();
 
 		SD_SetLastTimeCount(SD_GetTimeCount());
 
@@ -824,7 +827,15 @@ done:
 	VH_DrawBitmap(32, 80, CK_CHUNKNUM(PIC_GAMEOVER));
 	VL_Present();
 
-	IN_UserInput(24 * 70, false);
+	// Break the 24-second GAME OVER wait into 1-second slices so we can
+	// keep the AP client polled — otherwise a socket drop during this
+	// final wait could leave the goal-level check stranded in the queue.
+	for (int i = 0; i < 24; i++)
+	{
+		ap_client_poll();
+		if (IN_UserInput(70, false))
+			break;
+	}
 
 	StopMusic();
 }
