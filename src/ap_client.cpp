@@ -589,7 +589,7 @@ void ap_datastorage_set_level(int level, int episode)
 	if (!ap || ap->get_state() != APClient::State::SLOT_CONNECTED) return;
 
 	int player = ap->get_player_number();
-	std::string key = "_read_keen_current_level_" + std::to_string(player);
+	std::string key = "keen_current_level_" + std::to_string(player);
 
 	nlohmann::json value;
 	value["level"] = level;
