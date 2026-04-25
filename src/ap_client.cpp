@@ -584,6 +584,24 @@ static int ap_translate_item(int id)
 	return -1;
 }
 
+void ap_datastorage_set_level(int level, int episode)
+{
+	if (!ap || ap->get_state() != APClient::State::SLOT_CONNECTED) return;
+
+	int player = ap->get_player_number();
+	std::string key = "keen_current_level_" + std::to_string(player);
+
+	nlohmann::json value;
+	value["level"] = level;
+	value["episode"] = episode;
+
+	APClient::DataStorageOperation op;
+	op.operation = "replace";
+	op.value = value;
+
+	ap->Set(key, nlohmann::json(nullptr), false, {op});
+}
+
 static void ap_load_connection_info(void)
 {
     FILE *f = fopen("connection.txt", "r");
