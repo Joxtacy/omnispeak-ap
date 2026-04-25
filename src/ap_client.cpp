@@ -139,6 +139,10 @@ void ap_client_poll(void)
 {
     if (ap)
         ap->poll();
+
+	keen4done = ap_is_checked(LOC_LEVEL_COMPLETE(AP_EPISODE_CK4, AP_LEVEL_BEAN_WITH_BACON_MEGAROCKET));
+	keen5done = ap_is_checked(LOC_LEVEL_COMPLETE(AP_EPISODE_CK5, AP_LEVEL_QUANTUM_EXPLOSION_DYNAMO));
+	ap_announce_victory(keen4done, keen5done);
 }
 
 void ap_client_location_check(int location_id)
@@ -672,6 +676,7 @@ void ap_resync_items()
 	ap_has_pogo = 0;
 	ap_has_stunner = 0;
 	ck_gameState.ep.ck4.wetsuit = 0;
+	ck_gamesState.ep.ck5.securityCard = 0;
 
 	for (int i = 0; i < AP_MAX_ITEMS; i++)
 	{
