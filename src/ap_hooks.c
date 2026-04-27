@@ -21,7 +21,10 @@ void ap_on_level_complete(void)
 {
 	int location_id = LOC_LEVEL_COMPLETE(ap_current_episode, ap_current_level);
 	ap_client_location_check(location_id);
-	ap_check_goal();
+	
+	bool keen4done = ap_is_checked(LOC_LEVEL_COMPLETE(AP_EPISODE_CK4, AP_LEVEL_BEAN_WITH_BACON_MEGAROCKET));
+	bool keen5done = ap_is_checked(LOC_LEVEL_COMPLETE(AP_EPISODE_CK5, AP_LEVEL_QUANTUM_EXPLOSION_DYNAMO));
+	ap_announce_victory(keen4done, keen5done);
 }
 
 void ap_on_keygem_get(int item)

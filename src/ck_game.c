@@ -513,8 +513,6 @@ bool CK_LoadGame(FS_File fp, bool fromMenu)
 	if (ck_currentEpisode->ep == EP_CK5)
 		ck_gameState.ep.ck5.fusesRemaining = prevFuses;
 
-	ap_resync_items();
-
 	return true;
 }
 
@@ -616,9 +614,7 @@ void CK_LoadLevel(bool doCache, bool silent)
 
 	//Notify tracker of current level via DataStorage
 	ap_datastorage_set_level(ap_current_level, ap_current_episode);
-
-	//apply ap items received to Level
-	ap_apply_level_items(ap_current_level, ap_current_episode);
+	ap_resync_items();
 
 	CA_CacheMap(ck_gameState.currentLevel);
 	RF_NewMap();
@@ -1077,12 +1073,19 @@ void CK_GameLoop()
 			 * purge_chunks()
 			 * RF_Reset();
 			 */
+			
+			
 			ap_on_level_complete();
+
+			// do not play the ending cutscene
+			/*
 			CK_EndingPurge();
 			VL_FixRefreshBuffer();
 			help_endgame();
 			CK_SubmitHighScore(ck_gameState.keenScore, 0);
-			return;
+			*/
+			ck_gameState.currentLevel = 0; // back to world map
+			break;
 #endif
 		}
 

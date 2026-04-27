@@ -23,14 +23,12 @@ static char ap_slotname[64] = {0};
 static char ap_password[64] = {0};
 static int ap_port = 0;
 static int episode = 0;
-static bool keen4done = false;
-static bool keen5done = false;
 
 static APClient* ap = nullptr;
 
 static int ap_translate_item(int id);
 static void ap_load_connection_info(void);
-static bool ap_announce_victory(bool keen4done, bool keen5done);
+bool ap_announce_victory(bool keen4done, bool keen5done);
 
 void ap_client_init(void)
 {
@@ -121,9 +119,6 @@ void ap_client_init(void)
         else if (val.is_string())
             episode = std::stoi(val.get<std::string>());
     }
-
-	keen4done = ap_is_checked(LOC_LEVEL_COMPLETE(AP_EPISODE_CK4, AP_LEVEL_BEAN_WITH_BACON_MEGAROCKET));
-	keen5done = ap_is_checked(LOC_LEVEL_COMPLETE(AP_EPISODE_CK5, AP_LEVEL_QUANTUM_EXPLOSION_DYNAMO));
 	ap_show_message("Slot Connected.");
 });
 
@@ -139,10 +134,6 @@ void ap_client_poll(void)
 {
     if (ap)
         ap->poll();
-
-	keen4done = ap_is_checked(LOC_LEVEL_COMPLETE(AP_EPISODE_CK4, AP_LEVEL_BEAN_WITH_BACON_MEGAROCKET));
-	keen5done = ap_is_checked(LOC_LEVEL_COMPLETE(AP_EPISODE_CK5, AP_LEVEL_QUANTUM_EXPLOSION_DYNAMO));
-	ap_announce_victory(keen4done, keen5done);
 }
 
 void ap_client_location_check(int location_id)
@@ -153,18 +144,6 @@ void ap_client_location_check(int location_id)
     std::list<int64_t> checks;
     checks.push_back(location_id);
     ap->LocationChecks(checks);
-}
-
-void ap_check_goal(void)
-{
-	if (ap_current_episode == AP_EPISODE_CK4 &&
-		ap_current_level == AP_LEVEL_BEAN_WITH_BACON_MEGAROCKET)
-		keen4done = true;
-	if (ap_current_episode == AP_EPISODE_CK5 &&
-		ap_current_level == AP_LEVEL_QUANTUM_EXPLOSION_DYNAMO)
-		keen5done = true;
-
-	ap_announce_victory(keen4done, keen5done);
 }
 
 bool ap_is_checked(int id)
@@ -218,7 +197,8 @@ void ap_client_give_item(int item_id)
 			ap_has_stunner = 1;
 			break;
 		case AP_ITEM_WETSUIT:
-			ck_gameState.ep.ck4.wetsuit = 1;
+			if (ap_current_episode == AP_EPISODE_CK4)
+				ck_gameState.ep.ck4.wetsuit = 1;
 			break;
 		case AP_ITEM_STUNNER_AMMO:
 			ck_gameState.numShots++;
@@ -229,7 +209,7 @@ void ap_client_give_item(int item_id)
 	}
 }
 
-static bool ap_announce_victory(bool keen4done, bool keen5done)
+bool ap_announce_victory(bool keen4done, bool keen5done)
 {
 	if (!ap || ap->get_state() != APClient::State::SLOT_CONNECTED) return false;
 
@@ -666,22 +646,29 @@ void ap_reapply_item(int local_id)
 			ap_has_stunner = 1;
 			break;
 		case AP_ITEM_WETSUIT:
-			ck_gameState.ep.ck4.wetsuit = 1;
+			if (ap_current_episode == AP_EPISODE_CK4)
+				ck_gameState.ep.ck4.wetsuit = 1;
 			break;
 	}
 }
 
 void ap_resync_items()
 {
-	ap_has_pogo = 0;
-	ap_has_stunner = 0;
-	ck_gameState.ep.ck4.wetsuit = 0;
-	ck_gamesState.ep.ck5.securityCard = 0;
+    ap_has_pogo = 0;
+    ap_has_stunner = 0;
+    memset(ck_gameState.keyGems, 0, sizeof(ck_gameState.keyGems));
 
-	for (int i = 0; i < AP_MAX_ITEMS; i++)
-	{
-		if (ap_items[i])
-			ap_reapply_item(i);
-	}
+	if (ap_current_episode == AP_EPISODE_CK4)
+		ck_gameState.ep.ck4.wetsuit = 0;
+	if (ap_current_episode == AP_EPISODE_CK5)
+		ck_gameState.ep.ck5.securityCard = 0;
 
+    for (int i = 0; i < AP_MAX_ITEMS; i++)
+    {
+        if (ap_items[i])
+            ap_reapply_item(i);
+    }
+
+	if (ap_current_level > 0)
+		ap_apply_level_items(ap_current_level, ap_current_episode);
 }
