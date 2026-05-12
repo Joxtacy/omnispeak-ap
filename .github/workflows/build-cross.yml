@@ -12,7 +12,7 @@ jobs:
     - name: Dependencies
       run: |
         sudo apt update
-        sudo apt install gcc-multilib-powerpc64-linux-gnu linux-libc-dev-ppc64-cross
+        sudo apt install gcc-multilib-powerpc64-linux-gnu g++-multilib-powerpc64-linux-gnu linux-libc-dev-ppc64-cross
     - name: Build (ppc64 gcc)
       working-directory: ./src
       run: |

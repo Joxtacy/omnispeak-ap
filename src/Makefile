@@ -157,7 +157,7 @@ ifeq ($(PLATFORM),)
 endif
 
 CXXFLAGS += -Ithird_party -Ithird_party/apclientpp -Ithird_party/wswrap/include -Ithird_party/valijson/include
-CXXFLAGS += -DASIO_STANDALONE -D_WEBSOCKETPP_CPP11_STL_ -DAP_NO_SCHEMA
+CXXFLAGS += -DASIO_STANDALONE -D_WEBSOCKETPP_CPP11_STL_ -D_WEBSOCKETPP_CPP11_THREAD_ -DAP_NO_SCHEMA
 
 ifneq (,$(findstring win,$(PLATFORM)))
 	# common Windows stuff
