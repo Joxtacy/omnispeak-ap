@@ -137,7 +137,7 @@ void ap_apply_pending_death(void)
 
 bool ap_has_level(int level, int ep)
 {
-	int ap_level_to_item_ck4[]{
+	int ap_level_to_item_ck4[] = {
 		0,
 		AP_ITEM_BV,
 		AP_ITEM_SV,
@@ -159,7 +159,7 @@ bool ap_has_level(int level, int ep)
 		AP_ITEM_BWBMR
 	};
 
-	int ap_level_to_item_ck5[]{
+	int ap_level_to_item_ck5[] = {
 		0,
 		AP_ITEM_IVS,
 		AP_ITEM_SC,
