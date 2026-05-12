@@ -2,28 +2,42 @@ name: "CI: Demo Dump Tests"
 
 on: [push, pull_request]
 
+# Demo dump tests verify the game engine produces identical output for a
+# given input over time. They need proprietary Keen 5/6 game data which
+# kodbyte hosted at a private URL exposed via the `k56dataUrl` repo secret.
+# Forks that don't have that secret should skip rather than fail — gate
+# every step on env.K56DATA_URL being non-empty.
+
 jobs:
   demodumptest:
 
     runs-on: ubuntu-latest
+    env:
+      K56DATA_URL: ${{ secrets.k56dataUrl }}
 
     steps:
+    - name: Skip notice
+      if: env.K56DATA_URL == ''
+      run: |
+        echo "::notice::K56DATA_URL secret not set (typical for forks). Demo dump tests need proprietary Keen 5/6 game data and will be skipped on this run."
     - uses: actions/checkout@v1
+      if: env.K56DATA_URL != ''
     - name: Build (Linux)
+      if: env.K56DATA_URL != ''
       working-directory: ./src
       run: |
         make RENDERER=null DEBUG=1
         make dumpprinter
     - name: Get Datafiles
+      if: env.K56DATA_URL != ''
       working-directory: ./bin
-      env:
-        K56DATA_URL: ${{ secrets.k56dataUrl }}
       run: |
         wget https://davidgow.net/keen/4keen14.zip
         unzip 4keen14.zip AUDIO.CK4 Gamemaps.ck4 Egagraph.ck4
         wget "$K56DATA_URL"
         unzip k56data.zip
     - name: Run Tests (Keen 4)
+      if: env.K56DATA_URL != ''
       working-directory: ./bin
       run: |
         ../tests/testdump.sh 0 4
@@ -32,6 +46,7 @@ jobs:
         ../tests/testdump.sh 3 4
         ../tests/testdump.sh 4 4
     - name: Run Tests (Keen 5)
+      if: env.K56DATA_URL != ''
       working-directory: ./bin
       run: |
         ../tests/testdump.sh 0 5
@@ -40,6 +55,7 @@ jobs:
         ../tests/testdump.sh 3 5
         ../tests/testdump.sh 4 5
     - name: Run Tests (Keen 6 EGA v1.5)
+      if: env.K56DATA_URL != ''
       working-directory: ./bin
       run: |
         ../tests/testdump.sh 0 6v15
