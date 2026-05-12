@@ -114,11 +114,20 @@ SDL_CONFIG_PREFIX =
 OUTDIR_SUFFIX := INVALID
 
 # Archipelago client + websocket deps are header-only and vendored under
-# src/third_party. Include order matters: pinned asio must come before any
-# system include path that might also expose asio (e.g. brew's), and the
-# brew prefix must come before -Ithird_party so brew's complete nlohmann
-# tree wins over the incomplete vendored copy.
-CXXFLAGS += -I../third_party_pinned/asio-f693a3eb7fe72a5f19b975289afc4f437d373d9c/asio/include
+# src/third_party. The vendored websocketpp predates asio's removal of
+# io_service / expires_from_now, so we pin standalone-asio to the same
+# commit apclientpp's CI uses. The pinned tree is auto-fetched by the
+# $(ASIO_DIR) rule below (see also `make setup`); $(ASIO_DIR) is wired
+# in as a dependency of $(OUTBIN).
+#
+# Include order matters: pinned asio must come before any system include
+# path that might also expose asio (e.g. brew's), and the brew prefix
+# must come before -Ithird_party so brew's complete nlohmann tree wins
+# over the incomplete vendored copy.
+ASIO_COMMIT = f693a3eb7fe72a5f19b975289afc4f437d373d9c
+ASIO_DIR    = ../third_party_pinned/asio-$(ASIO_COMMIT)
+ASIO_URL    = https://github.com/chriskohlhoff/asio/archive/$(ASIO_COMMIT).tar.gz
+CXXFLAGS += -I$(ASIO_DIR)/asio/include
 
 UNAME_S := $(shell uname -s)
 
@@ -533,7 +542,15 @@ $(OBJDIR)/windowsres.res: windowsres.rc
 	mkdir -p $(dir $@)
 	$(BINPREFIX)windres $< -O coff -o $@
 
-$(OUTBIN): $(BINDIR) $(SDL_DIR) $(OBJ) $(RES)
+$(ASIO_DIR):
+	@mkdir -p $(dir $@)
+	curl -sL $(ASIO_URL) | tar xz -C $(dir $@)
+
+# Phony alias so users can run `make setup` to pre-fetch deps that aren't
+# managed by the system package manager.
+setup: $(ASIO_DIR)
+
+$(OUTBIN): $(BINDIR) $(SDL_DIR) $(ASIO_DIR) $(OBJ) $(RES)
 	$(CXX) $(SYSFLAGS) $(LDFLAGS) -o $(OUTBIN) $(OBJ) $(RES) $(SDL_LIBS) -lm $(LIBS)
 
 $(BINDIR)/dumpprinter: ../tools/dumpprinter/dumpprinter.c
@@ -595,4 +612,4 @@ distclean:
 
 -include $(DEPS)
 
-.PHONY: all help dumpconfig binfiles batfiles shellfiles keen4data keen5data keen6data clean distclean dumpprinter varparser
+.PHONY: all help dumpconfig setup binfiles batfiles shellfiles keen4data keen5data keen6data clean distclean dumpprinter varparser

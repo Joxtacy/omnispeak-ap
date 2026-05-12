@@ -9,6 +9,31 @@ This repository is a continuation fork of
 https://github.com/kodbyte/omnispeak-ap (archived). Active development
 happens here on the `ap-client` branch.
 
+BUILDING (non-Windows):
+	The Archipelago client (ap_client.cpp) needs a few header-only libraries
+	and a pinned copy of standalone Asio. The vendored websocketpp under
+	src/third_party/ predates asio's removal of io_service / expires_from_now,
+	so it only builds against the older asio commit that apclientpp's own CI
+	pins. The Makefile auto-fetches that asio tarball into third_party_pinned/
+	(gitignored) on first build, or you can pre-fetch with `make setup`.
+
+	System packages:
+	  macOS (Homebrew):
+	    brew install sdl2 openssl@3 nlohmann-json
+	  Linux (Debian/Ubuntu):
+	    sudo apt install libsdl2-dev libssl-dev nlohmann-json3-dev zlib1g-dev
+
+	Then from src/:
+	    make setup    # one-time; fetches pinned asio (~5 MB)
+	    make          # builds bin/omnispeak
+
+	Auto-fetch needs `curl` and `tar` on PATH. If you're offline, manually
+	download the tarball from
+	  https://github.com/chriskohlhoff/asio/archive/<commit>.tar.gz
+	(commit matches ASIO_COMMIT in src/Makefile) and extract into
+	third_party_pinned/ so the path third_party_pinned/asio-<commit>/asio/include/asio.hpp
+	resolves.
+
 QUICKSTART:
 	1. Download the current omnispeak-ap release.
 	2. Copy the required game files (see below) into the omnispeak directory.
