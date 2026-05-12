@@ -19,20 +19,20 @@ BUILDING (non-Windows):
 
 	System packages:
 	  macOS (Homebrew):
-	    brew install sdl2 openssl@3 nlohmann-json
+	    brew install sdl2 openssl@3
 	  Linux (Debian/Ubuntu):
-	    sudo apt install libsdl2-dev libssl-dev nlohmann-json3-dev zlib1g-dev
+	    sudo apt install libsdl2-dev libssl-dev zlib1g-dev
 
 	Then from src/:
-	    make setup    # one-time; fetches pinned asio (~5 MB)
+	    make setup    # one-time; fetches pinned asio + nlohmann-json
 	    make          # builds bin/omnispeak
 
 	Auto-fetch needs `curl` and `tar` on PATH. If you're offline, manually
-	download the tarball from
-	  https://github.com/chriskohlhoff/asio/archive/<commit>.tar.gz
-	(commit matches ASIO_COMMIT in src/Makefile) and extract into
-	third_party_pinned/ so the path third_party_pinned/asio-<commit>/asio/include/asio.hpp
-	resolves.
+	download:
+	  asio:       https://github.com/chriskohlhoff/asio/archive/<commit>.tar.gz
+	  nlohmann:   https://github.com/nlohmann/json/releases/download/<version>/json.hpp
+	(commits/versions match ASIO_COMMIT / NLOHMANN_VERSION in src/Makefile)
+	and place them under third_party_pinned/ so the include paths resolve.
 
 QUICKSTART:
 	1. Download the current omnispeak-ap release.

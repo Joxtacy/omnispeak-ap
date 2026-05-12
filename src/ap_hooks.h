@@ -2,6 +2,8 @@
 #ifndef AP_HOOKS_H
 #define AP_HOOKS_H
 
+#include <stdbool.h>
+
 extern int ap_current_level;
 extern int ap_current_episode;
 extern int ap_starting_points;

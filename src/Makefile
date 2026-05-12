@@ -127,7 +127,19 @@ OUTDIR_SUFFIX := INVALID
 ASIO_COMMIT = f693a3eb7fe72a5f19b975289afc4f437d373d9c
 ASIO_DIR    = ../third_party_pinned/asio-$(ASIO_COMMIT)
 ASIO_URL    = https://github.com/chriskohlhoff/asio/archive/$(ASIO_COMMIT).tar.gz
-CXXFLAGS += -I$(ASIO_DIR)/asio/include
+
+# nlohmann-json: the vendored copy under src/third_party/nlohmann/ is the
+# modular version and is missing several internal headers (e.g.
+# detail/input/binary_reader.hpp), so we pin the amalgamated single-header
+# release instead. Same auto-fetch pattern as asio.
+NLOHMANN_VERSION = v3.12.0
+NLOHMANN_DIR     = ../third_party_pinned/nlohmann-$(NLOHMANN_VERSION)
+NLOHMANN_URL     = https://github.com/nlohmann/json/releases/download/$(NLOHMANN_VERSION)/json.hpp
+
+# Both pinned include paths must come before -Ithird_party (added later)
+# so they win over the incomplete vendored nlohmann and over any system
+# asio that might be in the include search path.
+CXXFLAGS += -I$(ASIO_DIR)/asio/include -I$(NLOHMANN_DIR)
 
 UNAME_S := $(shell uname -s)
 
@@ -137,7 +149,7 @@ ifeq ($(PLATFORM),)
 	ifeq ($(UNAME_S),Darwin)
 		BREW_PREFIX := $(shell brew --prefix 2>/dev/null)
 		ifneq ($(BREW_PREFIX),)
-			CXXFLAGS += -I$(BREW_PREFIX)/include -I$(BREW_PREFIX)/opt/openssl@3/include
+			CXXFLAGS += -I$(BREW_PREFIX)/opt/openssl@3/include
 			LDFLAGS  += -L$(BREW_PREFIX)/opt/openssl@3/lib
 		endif
 		LIBGL = -framework OpenGL
@@ -546,11 +558,15 @@ $(ASIO_DIR):
 	@mkdir -p $(dir $@)
 	curl -sL $(ASIO_URL) | tar xz -C $(dir $@)
 
+$(NLOHMANN_DIR)/nlohmann/json.hpp:
+	@mkdir -p $(dir $@)
+	curl -sL $(NLOHMANN_URL) -o $@
+
 # Phony alias so users can run `make setup` to pre-fetch deps that aren't
 # managed by the system package manager.
-setup: $(ASIO_DIR)
+setup: $(ASIO_DIR) $(NLOHMANN_DIR)/nlohmann/json.hpp
 
-$(OUTBIN): $(BINDIR) $(SDL_DIR) $(ASIO_DIR) $(OBJ) $(RES)
+$(OUTBIN): $(BINDIR) $(SDL_DIR) $(ASIO_DIR) $(NLOHMANN_DIR)/nlohmann/json.hpp $(OBJ) $(RES)
 	$(CXX) $(SYSFLAGS) $(LDFLAGS) -o $(OUTBIN) $(OBJ) $(RES) $(SDL_LIBS) -lm $(LIBS)
 
 $(BINDIR)/dumpprinter: ../tools/dumpprinter/dumpprinter.c

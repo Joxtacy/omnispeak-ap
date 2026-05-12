@@ -2,6 +2,8 @@
 #ifndef AP_CLIENT_H
 #define AP_CLIENT_H
 
+#include <stdbool.h>
+
 void ap_client_init(void);
 void ap_client_poll(void);
 void ap_client_location_check(int location_id);
