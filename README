@@ -5,6 +5,10 @@ This is a forked version of Omnispeak (https://github.com/sulix/omnispeak),
 a Commander Keen source port. It adds support for the Archipelago multiworld
 randomizer.
 
+This repository is a continuation fork of
+https://github.com/kodbyte/omnispeak-ap (archived). Active development
+happens here on the `ap-client` branch.
+
 QUICKSTART:
 	1. Download the current omnispeak-ap release.
 	2. Copy the required game files (see below) into the omnispeak directory.
