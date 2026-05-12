@@ -16,4 +16,7 @@ jobs:
     - name: Build (ppc64 gcc)
       working-directory: ./src
       run: |
-        make BINPREFIX=powerpc64-linux-gnu- STATIC=1 BUILDASCPP=0 RENDERER=null
+        # NO_SSL=1: this is a compile-test only; ppc64 cross OpenSSL isn't
+        # available in the apt cross packages, and the produced binary
+        # isn't shipped anywhere.
+        make BINPREFIX=powerpc64-linux-gnu- STATIC=1 BUILDASCPP=0 RENDERER=null NO_SSL=1

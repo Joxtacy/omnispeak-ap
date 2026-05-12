@@ -109,7 +109,17 @@ LIBVULKAN = -lvulkan
 LIBASOUND = -lasound
 LIBIEEE1284 = -lieee1284
 LIBOPLHW = -loplhw
-LIBS += -lssl -lcrypto -lz -lm
+# NO_SSL=1 disables wss:// support (defines WSWRAP_NO_SSL, drops the OpenSSL
+# link). Needed for toolchains without cross OpenSSL (djgpp, ppc64 CI smoke).
+# Archipelago servers normally require wss, so don't ship a release build
+# with this set.
+NO_SSL ?= 0
+ifeq ($(NO_SSL), 1)
+	CXXFLAGS += -DWSWRAP_NO_SSL
+else
+	LIBS += -lssl -lcrypto
+endif
+LIBS += -lz -lm
 SDL_CONFIG_PREFIX =
 OUTDIR_SUFFIX := INVALID
 

@@ -2,6 +2,13 @@ name: "CI: Build (Default)"
 
 on: [push, pull_request]
 
+# Cross OpenSSL for the mingw Windows builds is built from source here.
+# Ubuntu's mingw-w64 packages don't ship OpenSSL, and apclient/wswrap needs
+# it for wss:// connections to AP servers. Bumping OPENSSL_VERSION
+# invalidates the cache below.
+env:
+  OPENSSL_VERSION: "3.0.15"
+
 jobs:
   build:
 
@@ -12,13 +19,34 @@ jobs:
     - name: Dependencies
       run: |
         sudo apt update
-        sudo apt install libsdl2-dev mingw-w64 libasound2-dev libieee1284-3-dev
+        sudo apt install libsdl2-dev libssl-dev zlib1g-dev mingw-w64 libasound2-dev libieee1284-3-dev
         wget https://github.com/andrewwutw/build-djgpp/releases/download/v3.1/djgpp-linux64-gcc1020.tar.bz2
         sudo tar xf djgpp-linux64-gcc1020.tar.bz2 -C /usr/local
         wget -nc https://davidgow.net/stuff/csdpmi7b.zip
         mkdir csdpmi7b
         unzip csdpmi7b.zip -d csdpmi7b/
         sudo mkdir -p /opt
+    - name: Cache mingw OpenSSL
+      id: openssl-cache
+      uses: actions/cache@v4
+      with:
+        path: openssl-mingw
+        key: openssl-mingw-${{ env.OPENSSL_VERSION }}-v1
+    - name: Build mingw OpenSSL
+      if: steps.openssl-cache.outputs.cache-hit != 'true'
+      run: |
+        set -euo pipefail
+        wget -q https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz
+        tar xf openssl-${OPENSSL_VERSION}.tar.gz
+        for arch in mingw mingw64; do
+          case "$arch" in
+            mingw)   tool=i686-w64-mingw32   ; out="$GITHUB_WORKSPACE/openssl-mingw/i686"   ;;
+            mingw64) tool=x86_64-w64-mingw32 ; out="$GITHUB_WORKSPACE/openssl-mingw/x86_64" ;;
+          esac
+          (cd openssl-${OPENSSL_VERSION} && \
+            ./Configure "$arch" --cross-compile-prefix="${tool}-" --prefix="$out" no-shared no-tests && \
+            make -j$(nproc) && make install_sw && make distclean)
+        done
     - name: Build (Linux)
       working-directory: ./src
       run: |
@@ -26,12 +54,21 @@ jobs:
     - name: Build (Windows)
       working-directory: ./src
       run: |
+        # CXXFLAGS / LDFLAGS via env (not `make VAR=val`) so the Makefile's
+        # own `+=` additions still apply — command-line vars override `+=`,
+        # env vars don't.
+        export CXXFLAGS="-I$GITHUB_WORKSPACE/openssl-mingw/i686/include"
+        export LDFLAGS="-L$GITHUB_WORKSPACE/openssl-mingw/i686/lib"
         make PLATFORM=win32
+        export CXXFLAGS="-I$GITHUB_WORKSPACE/openssl-mingw/x86_64/include"
+        export LDFLAGS="-L$GITHUB_WORKSPACE/openssl-mingw/x86_64/lib"
         make PLATFORM=win64
     - name: Build (MS-DOS)
       working-directory: ./src
       run: |
-        make PLATFORM=dos
+        # djgpp doesn't ship OpenSSL; the DOS build can't talk to AP servers
+        # anyway, so build without wss support.
+        make PLATFORM=dos NO_SSL=1
         cp ../csdpmi7b/bin/CWSDPMI.EXE ../bin-dos
     - name: Upload (Linux)
       uses: actions/upload-artifact@v4

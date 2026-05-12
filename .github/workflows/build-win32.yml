@@ -79,11 +79,11 @@ jobs:
       with:
         name: Windows Build (MSVC-x86-Debug)
         path: build32/Debug
-    - name: Upload (Windows/MSVC/RelWithDebInfo/x64)
+    - name: Upload (Windows/MSVC/RelWithDebInfo/x86)
       uses: actions/upload-artifact@v4
       with:
         name: Windows Build (MSVC-x86-RelWithDebInfo)
-        path: build32/Debug
+        path: build32/RelWithDebInfo
     - name: Upload (Windows/MSVC/Debug/x64)
       uses: actions/upload-artifact@v4
       with:
@@ -93,7 +93,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: Windows Build (MSVC-x64-RelWithDebInfo)
-        path: build64/Debug
+        path: build64/RelWithDebInfo
     - name: Upload (Windows/mingw/RelWithDebInfo/i686)
       uses: actions/upload-artifact@v4
       with:
