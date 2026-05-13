@@ -109,17 +109,18 @@ LIBVULKAN = -lvulkan
 LIBASOUND = -lasound
 LIBIEEE1284 = -lieee1284
 LIBOPLHW = -loplhw
-# NO_SSL=1 disables wss:// support (defines WSWRAP_NO_SSL, drops the OpenSSL
-# link). Needed for toolchains without cross OpenSSL (djgpp, ppc64 CI smoke).
-# Archipelago servers normally require wss, so don't ship a release build
-# with this set.
+# NO_SSL=1 disables wss:// support (defines WSWRAP_NO_SSL) AND
+# permessage-deflate (defines WSWRAP_NO_COMPRESSION), dropping the
+# OpenSSL + zlib link deps. Needed for toolchains without cross
+# OpenSSL/zlib (djgpp, ppc64 CI smoke). Archipelago servers normally
+# require wss, so don't ship a release build with this set.
 NO_SSL ?= 0
 ifeq ($(NO_SSL), 1)
-	CXXFLAGS += -DWSWRAP_NO_SSL
+	CXXFLAGS += -DWSWRAP_NO_SSL -DWSWRAP_NO_COMPRESSION
 else
-	LIBS += -lssl -lcrypto
+	LIBS += -lssl -lcrypto -lz
 endif
-LIBS += -lz -lm
+LIBS += -lm
 SDL_CONFIG_PREFIX =
 OUTDIR_SUFFIX := INVALID
 
