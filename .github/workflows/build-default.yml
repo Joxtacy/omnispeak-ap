@@ -37,8 +37,10 @@ jobs:
       if: steps.openssl-cache.outputs.cache-hit != 'true'
       run: |
         set -euo pipefail
-        wget -q https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz
-        wget -q https://zlib.net/zlib-${ZLIB_VERSION}.tar.gz
+        # GitHub releases / zlib fossils — stable URLs that don't 404 once
+        # newer point releases ship.
+        wget -q "https://github.com/openssl/openssl/releases/download/openssl-${OPENSSL_VERSION}/openssl-${OPENSSL_VERSION}.tar.gz"
+        wget -q "https://zlib.net/fossils/zlib-${ZLIB_VERSION}.tar.gz"
         tar xf openssl-${OPENSSL_VERSION}.tar.gz
         tar xf zlib-${ZLIB_VERSION}.tar.gz
         for arch in mingw mingw64; do
