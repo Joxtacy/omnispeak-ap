@@ -1,0 +1,147 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version (e.g. 0.0.6)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+# Cross OpenSSL + zlib version pins must match build-default.yml so both
+# workflows share the same actions/cache entry. Bumping either invalidates
+# the cache in both places.
+env:
+  OPENSSL_VERSION: "3.0.15"
+  ZLIB_VERSION: "1.3.1"
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate version format
+        run: |
+          if ! echo "${{ inputs.version }}" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "::error::Version must be in semver format (e.g. 0.0.6)"
+            exit 1
+          fi
+
+      - name: Check tag does not already exist
+        run: |
+          if git rev-parse "v${{ inputs.version }}" >/dev/null 2>&1; then
+            echo "::error::Tag v${{ inputs.version }} already exists"
+            exit 1
+          fi
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [ -z "$PREV_TAG" ]; then
+            LOG=$(git log --pretty=format:"- %s" HEAD)
+          else
+            LOG=$(git log --pretty=format:"- %s" "${PREV_TAG}..HEAD")
+          fi
+          {
+            echo "changelog<<EOF"
+            echo "$LOG"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y libsdl2-dev libssl-dev zlib1g-dev mingw-w64 libasound2-dev libieee1284-3-dev
+
+      - name: Cache mingw OpenSSL + zlib
+        id: openssl-cache
+        uses: actions/cache@v4
+        with:
+          path: openssl-mingw
+          key: openssl-mingw-${{ env.OPENSSL_VERSION }}-zlib-${{ env.ZLIB_VERSION }}-v2
+
+      - name: Build mingw OpenSSL + zlib
+        if: steps.openssl-cache.outputs.cache-hit != 'true'
+        run: |
+          set -euo pipefail
+          wget -q "https://github.com/openssl/openssl/releases/download/openssl-${OPENSSL_VERSION}/openssl-${OPENSSL_VERSION}.tar.gz"
+          wget -q "https://zlib.net/fossils/zlib-${ZLIB_VERSION}.tar.gz"
+          tar xf openssl-${OPENSSL_VERSION}.tar.gz
+          tar xf zlib-${ZLIB_VERSION}.tar.gz
+          # Only x86_64 — release ships a single 64-bit binary, no win32.
+          tool=x86_64-w64-mingw32
+          out="$GITHUB_WORKSPACE/openssl-mingw/x86_64"
+          (cd zlib-${ZLIB_VERSION} && \
+            make -f win32/Makefile.gcc clean && \
+            make -f win32/Makefile.gcc PREFIX="${tool}-" -j$(nproc) && \
+            make -f win32/Makefile.gcc PREFIX="${tool}-" install \
+              DESTDIR="$out" INCLUDE_PATH=/include LIBRARY_PATH=/lib BINARY_PATH=/bin)
+          (cd openssl-${OPENSSL_VERSION} && \
+            ./Configure mingw64 --cross-compile-prefix="${tool}-" --prefix="$out" --libdir=lib no-shared no-tests && \
+            make -j$(nproc) && make install_sw && make distclean)
+
+      - name: Build Windows binary (win64)
+        working-directory: ./src
+        run: |
+          export CXXFLAGS="-I$GITHUB_WORKSPACE/openssl-mingw/x86_64/include"
+          export LDFLAGS="-L$GITHUB_WORKSPACE/openssl-mingw/x86_64/lib"
+          make PLATFORM=win64
+
+      - name: Fetch latest Mozilla CA bundle
+        run: wget -q -O cacert.pem https://curl.se/ca/cacert.pem
+
+      - name: Stage release files
+        run: |
+          set -euo pipefail
+          mkdir -p staging
+          # Built artifacts
+          cp bin-win64/omnispeak.exe staging/
+          cp SDL2-2.30.9/x86_64-w64-mingw32/bin/SDL2.dll staging/
+          # Game data (Keen 4, Keen 5, Keen 6 v1.5)
+          cp data/keen4/*.CK4 staging/
+          cp data/keen5/*.CK5 staging/
+          cp data/keen6e15/*.CK6 staging/
+          # Vendored launcher + runtime config templates
+          cp release-assets/"AP Keen Launcher.exe" staging/
+          cp release-assets/connection.txt staging/
+          cp release-assets/OMNISPK.CFG staging/
+          cp release-assets/ap_uuid.txt staging/
+          # Fetched Mozilla CA bundle
+          cp cacert.pem staging/
+          # Docs (rename to .TXT to match the kodbyte release layout)
+          cp AUTHORS staging/AUTHORS.TXT
+          cp README  staging/README.TXT
+
+      - name: Build zip
+        run: |
+          ZIP_NAME="OmnispeakAP.v${{ inputs.version }}.zip"
+          (cd staging && zip -r "../$ZIP_NAME" .)
+          echo "ZIP_NAME=$ZIP_NAME" >> "$GITHUB_ENV"
+
+      - name: Tag and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag "v${{ inputs.version }}"
+          git push origin "v${{ inputs.version }}"
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: "v${{ inputs.version }}"
+          name: "v${{ inputs.version }}"
+          body: |
+            ## Changelog
+
+            ${{ steps.changelog.outputs.changelog }}
+          files: |
+            ${{ env.ZIP_NAME }}

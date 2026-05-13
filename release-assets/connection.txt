@@ -1,0 +1,4 @@
+server: localhost
+port: 38281
+slotname: Test
+password: 
