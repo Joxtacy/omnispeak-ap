@@ -185,6 +185,7 @@ ifneq (,$(findstring win,$(PLATFORM)))
 	DEFAULT_BUILDASCPP = 1
 	LIBGL = -lopengl32
 	LIBS += -lcrypt32 -lws2_32
+endif
 ifeq ($(PLATFORM), win32)
 	OUTDIR_SUFFIX := -win32
 	TOOLSET = i686-w64-mingw32
