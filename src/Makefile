@@ -180,9 +180,11 @@ ifneq (,$(findstring win,$(PLATFORM)))
 	endif
 	DEFAULT_LOCAL_SDL = 1
 	DEFAULT_RENDERER = sdl2
+	# Build/link via g++ so the C++ runtime (libstdc++) is pulled in for
+	# ap_client.cpp. Matches the dos/gcw0/native branches.
+	DEFAULT_BUILDASCPP = 1
 	LIBGL = -lopengl32
 	LIBS += -lcrypt32 -lws2_32
-endif
 ifeq ($(PLATFORM), win32)
 	OUTDIR_SUFFIX := -win32
 	TOOLSET = i686-w64-mingw32
