@@ -32,7 +32,7 @@ jobs:
       uses: actions/cache@v4
       with:
         path: openssl-mingw
-        key: openssl-mingw-${{ env.OPENSSL_VERSION }}-zlib-${{ env.ZLIB_VERSION }}-v1
+        key: openssl-mingw-${{ env.OPENSSL_VERSION }}-zlib-${{ env.ZLIB_VERSION }}-v2
     - name: Build mingw OpenSSL + zlib
       if: steps.openssl-cache.outputs.cache-hit != 'true'
       run: |
@@ -55,8 +55,11 @@ jobs:
             make -f win32/Makefile.gcc PREFIX="${tool}-" -j$(nproc) && \
             make -f win32/Makefile.gcc PREFIX="${tool}-" install \
               DESTDIR="$out" INCLUDE_PATH=/include LIBRARY_PATH=/lib BINARY_PATH=/bin)
+          # --libdir=lib: OpenSSL defaults to lib64 on 64-bit targets,
+          # which doesn't match the -L paths we pass to make. Pin to lib
+          # so both i686 and x86_64 install layouts are identical.
           (cd openssl-${OPENSSL_VERSION} && \
-            ./Configure "$arch" --cross-compile-prefix="${tool}-" --prefix="$out" no-shared no-tests && \
+            ./Configure "$arch" --cross-compile-prefix="${tool}-" --prefix="$out" --libdir=lib no-shared no-tests && \
             make -j$(nproc) && make install_sw && make distclean)
         done
     - name: Build (Linux)
