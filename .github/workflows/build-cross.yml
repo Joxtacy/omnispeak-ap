@@ -19,4 +19,7 @@ jobs:
         # NO_SSL=1: this is a compile-test only; ppc64 cross OpenSSL isn't
         # available in the apt cross packages, and the produced binary
         # isn't shipped anywhere.
-        make BINPREFIX=powerpc64-linux-gnu- STATIC=1 BUILDASCPP=0 RENDERER=null NO_SSL=1
+        # BUILDASCPP=1: ap_client.cpp is C++ so the link step needs g++
+        # (libstdc++ / __gxx_personality_v0). The pre-AP build used
+        # BUILDASCPP=0 because the engine was pure C; that no longer holds.
+        make BINPREFIX=powerpc64-linux-gnu- STATIC=1 BUILDASCPP=1 RENDERER=null NO_SSL=1
