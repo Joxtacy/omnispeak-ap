@@ -244,12 +244,15 @@ void ap_show_message(const char* msg)
 #define AP_TOAST_FONT 1
 #define AP_TOAST_TEXT_COLOUR 14
 #define AP_TOAST_BG_COLOUR 0
-// Baseline for the most recent toast. The in-game scoreboard sits along the
-// right edge, so we anchor toasts above where text-mode status messages would
-// land and keep them on the left half.
+// Baseline for the most recent toast. The bottom strip keeps the toast clear
+// of the scoreBox HUD that sits in the top-left corner. Newer toasts anchor
+// here and older toasts stack upward.
 #define AP_TOAST_Y_BASE 184
 #define AP_TOAST_X 4
 #define AP_TOAST_MAX_W 312
+#define AP_TOAST_PAD_X 4
+#define AP_TOAST_PAD_Y 2
+#define AP_TOAST_GAP 2
 
 typedef struct
 {
@@ -298,6 +301,21 @@ void ap_toast_draw(void)
 	// dirty on all pages, so each subsequent frame's RFL_UpdateTiles
 	// repaints the underlying tiles fresh (clears expired-toast residue)
 	// before this function repaints the current toast on top.
+	//
+	// Newest toast is at index 0 and renders at AP_TOAST_Y_BASE; older
+	// toasts stack upward. The bar is padded generously around the glyph
+	// extents because the prop font's XOR text rendering produces visible
+	// flicker if any glyph pixel falls outside the bar onto a tile that
+	// changes from frame to frame.
+
+	// VHB_* internally adds `VL_GetScrollX() & 8` to X (the engine only
+	// tracks the bit-3 portion of horizontal scroll because the buffer is
+	// just 16px wider than the screen). For a HUD overlay we want fixed
+	// screen X, which requires tracking the FULL scrollX mod 16. We add
+	// the missing low bits (`& 7`) here so VHB_'s subsequent `& 8` add
+	// completes the full mod-16 compensation. Y already gets the full
+	// scrollY from VHB_, so no compensation needed there.
+	int scrX_fix = VL_GetScrollX() & 7;
 
 	int y = AP_TOAST_Y_BASE;
 
@@ -313,12 +331,17 @@ void ap_toast_draw(void)
 		if (w > AP_TOAST_MAX_W)
 			w = AP_TOAST_MAX_W;
 
-		if (y - (int)h < 0)
+		int bar_x = AP_TOAST_X - AP_TOAST_PAD_X + scrX_fix;
+		int bar_y = y - AP_TOAST_PAD_Y;
+		int bar_w = (int)w + 2 * AP_TOAST_PAD_X;
+		int bar_h = (int)h + 2 * AP_TOAST_PAD_Y;
+
+		if (bar_y < 0)
 			break;
 
-		VHB_Bar(AP_TOAST_X - 2, y - 1, w + 4, h + 2, AP_TOAST_BG_COLOUR);
-		VHB_DrawPropString(ap_toasts[i].msg, AP_TOAST_X, y, AP_TOAST_FONT, AP_TOAST_TEXT_COLOUR);
+		VHB_Bar(bar_x, bar_y, bar_w, bar_h, AP_TOAST_BG_COLOUR);
+		VHB_DrawPropString(ap_toasts[i].msg, AP_TOAST_X + scrX_fix, y, AP_TOAST_FONT, AP_TOAST_TEXT_COLOUR);
 
-		y -= (int)h + 3;
+		y -= bar_h + AP_TOAST_GAP;
 	}
 }

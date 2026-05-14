@@ -1446,6 +1446,14 @@ void RF_Refresh()
 	if (rf_drawFunc)
 		rf_drawFunc();
 
+	// Push this frame's scroll coords to the backend BEFORE the AP overlay
+	// runs. VHB_* in ap_toast_draw adds VL_GetScroll* to its coordinates,
+	// and if the scroll globals still held the PREVIOUS frame's values the
+	// toast would land at a stale buffer position relative to the viewport
+	// — visible as 1-pixel jitter during scrolling.
+	// 0xef for the X-direction to match EGA keen's 2px horz scrolling.
+	VL_SetScrollCoords(RF_UnitToPixel(rf_scrollXUnit & 0xef), RF_UnitToPixel(rf_scrollYUnit & 0xff));
+
 	// AP HUD overlay. Direct call because registering this via
 	// RF_SetDrawFunc / rf_drawFunc causes a black play-area regression on
 	// this build (root cause not identified). ap_toast_draw uses VHB_* so
@@ -1453,8 +1461,6 @@ void RF_Refresh()
 	// cleanup of expired toasts naturally.
 	ap_toast_draw();
 
-	// 0xef for the X-direction to match EGA keen's 2px horz scrolling.
-	VL_SetScrollCoords(RF_UnitToPixel(rf_scrollXUnit & 0xef), RF_UnitToPixel(rf_scrollYUnit & 0xff));
 	VL_SwapOnNextPresent();
 	VL_Present();
 
