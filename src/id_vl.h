@@ -118,6 +118,7 @@ typedef struct VL_Backend
 	void (*updateRect)(void *surface, int x, int y, int w, int h);
 	void (*flushParams)();
 	void (*waitVBLs)(int vbls);
+	void (*setWindowTitle)(const char *title);
 } VL_Backend;
 
 void VL_InitScreen(void);
@@ -169,6 +170,7 @@ void VL_FixRefreshBuffer();
 void VL_UpdateRect(int x, int y, int w, int h);
 void VL_SwapOnNextPresent();
 void VL_Present();
+void VL_SetWindowTitle(const char *title);
 
 VL_Backend *VL_Impl_GetBackend(void);
 

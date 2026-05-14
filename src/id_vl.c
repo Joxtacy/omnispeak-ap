@@ -1132,3 +1132,9 @@ void VL_Present()
 	vl_currentBackend->present(vl_emuegavgaadapter.screen, vl_scrollXpixels, vl_scrollYpixels, !vl_swapOnNextPresent);
 	vl_swapOnNextPresent = false;
 }
+
+void VL_SetWindowTitle(const char *title)
+{
+	if (vl_currentBackend && vl_currentBackend->setWindowTitle && title)
+		vl_currentBackend->setWindowTitle(title);
+}

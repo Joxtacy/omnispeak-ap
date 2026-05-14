@@ -701,6 +701,12 @@ static void VL_SDL2GL_WaitVBLs(int vbls)
 	SDL_Delay(vbls * 1000 / 70);
 }
 
+static void VL_SDL2GL_SetWindowTitle(const char *title)
+{
+	if (vl_sdl2gl_window)
+		SDL_SetWindowTitle(vl_sdl2gl_window, title);
+}
+
 static void VL_SDL2GL_SyncBuffers(void *surface)
 {
 	VL_SDL2GL_Surface *srf = (VL_SDL2GL_Surface*)surface;
@@ -759,7 +765,8 @@ VL_Backend vl_sdl2gl_backend =
 		/*.syncBuffers =*/&VL_SDL2GL_SyncBuffers,
 		/*.updateRect =*/&VL_SDL2GL_UpdateRect,
 		/*.flushParams =*/&VL_SDL2GL_FlushParams,
-		/*.waitVBLs =*/&VL_SDL2GL_WaitVBLs};
+		/*.waitVBLs =*/&VL_SDL2GL_WaitVBLs,
+		/*.setWindowTitle =*/&VL_SDL2GL_SetWindowTitle};
 
 VL_Backend *VL_Impl_GetBackend()
 {

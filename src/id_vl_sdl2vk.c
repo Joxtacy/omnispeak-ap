@@ -1792,6 +1792,12 @@ static void VL_SDL2VK_WaitVBLs(int vbls)
 	SDL_Delay(vbls * 1000 / 70);
 }
 
+static void VL_SDL2VK_SetWindowTitle(const char *title)
+{
+	if (vl_sdl2vk_window)
+		SDL_SetWindowTitle(vl_sdl2vk_window, title);
+}
+
 // Unfortunately, we can't take advantage of designated initializers in C++.
 VL_Backend vl_sdl2vk_backend =
 	{
@@ -1822,7 +1828,8 @@ VL_Backend vl_sdl2vk_backend =
 		/*.syncBuffers =*/&VL_SDL2VK_SyncBuffers,
 		/*.updateRect =*/&VL_SDL2VK_UpdateRect,
 		/*.flushParams =*/&VL_SDL2VK_FlushParams,
-		/*.waitVBLs =*/&VL_SDL2VK_WaitVBLs};
+		/*.waitVBLs =*/&VL_SDL2VK_WaitVBLs,
+		/*.setWindowTitle =*/&VL_SDL2VK_SetWindowTitle};
 
 VL_Backend *VL_Impl_GetBackend()
 {

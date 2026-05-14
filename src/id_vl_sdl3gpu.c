@@ -685,6 +685,12 @@ static void VL_SDL3GPU_WaitVBLs(int vbls)
 	SDL_Delay(vbls * 1000 / 70);
 }
 
+static void VL_SDL3GPU_SetWindowTitle(const char *title)
+{
+	if (vl_sdl3_window)
+		SDL_SetWindowTitle(vl_sdl3_window, title);
+}
+
 // Unfortunately, we can't take advantage of designated initializers in C++.
 VL_Backend vl_sdl3gpu_backend =
 	{
@@ -715,7 +721,8 @@ VL_Backend vl_sdl3gpu_backend =
 		/*.syncBuffers =*/&VL_SDL3GPU_SyncBuffers,
 		/*.updateRect =*/&VL_SDL3GPU_UpdateRect,
 		/*.flushParams =*/&VL_SDL3GPU_FlushParams,
-		/*.waitVBLs =*/&VL_SDL3GPU_WaitVBLs
+		/*.waitVBLs =*/&VL_SDL3GPU_WaitVBLs,
+		/*.setWindowTitle =*/&VL_SDL3GPU_SetWindowTitle
 	};
 
 VL_Backend *VL_Impl_GetBackend()

@@ -974,7 +974,8 @@ VL_Backend vl_dos_backend =
 		/*.syncBuffers =*/&VL_DOS_SyncBuffers,
 		/*.updateRect =*/&VL_DOS_UpdateRect,
 		/*.flushParams =*/&VL_DOS_FlushParams,
-		/*.waitVBLs =*/&VL_DOS_WaitVBLs};
+		/*.waitVBLs =*/&VL_DOS_WaitVBLs,
+		/*.setWindowTitle =*/0};
 
 VL_Backend *VL_Impl_GetBackend()
 {

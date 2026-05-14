@@ -366,6 +366,11 @@ static void VL_SDL12_WaitVBLs(int vbls)
 	SDL_Delay(vbls * 1000 / 70);
 }
 
+static void VL_SDL12_SetWindowTitle(const char *title)
+{
+	SDL_WM_SetCaption(title, title);
+}
+
 // Unfortunately, we can't take advantage of designated initializers in C++.
 VL_Backend vl_sdl12_backend =
 	{
@@ -396,7 +401,8 @@ VL_Backend vl_sdl12_backend =
 		/*.syncBuffers =*/&VL_SDL12_SyncBuffers,
 		/*.updateRect =*/&VL_SDL12_UpdateRect,
 		/*.flushParams =*/&VL_SDL12_FlushParams,
-		/*.waitVBLs =*/&VL_SDL12_WaitVBLs};
+		/*.waitVBLs =*/&VL_SDL12_WaitVBLs,
+		/*.setWindowTitle =*/&VL_SDL12_SetWindowTitle};
 
 VL_Backend *VL_Impl_GetBackend()
 {

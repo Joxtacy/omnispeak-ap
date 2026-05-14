@@ -289,7 +289,8 @@ VL_Backend vl_null_backend =
 		/*.syncBuffers =*/&VL_NULL_SyncBuffers,
 		/*.updateRect =*/&VL_NULL_UpdateRect,
 		/*.flushParams =*/&VL_NULL_FlushParams,
-		/*.waitVBLs =*/&VL_NULL_WaitVBLs};
+		/*.waitVBLs =*/&VL_NULL_WaitVBLs,
+		/*.setWindowTitle =*/0};
 
 VL_Backend *VL_Impl_GetBackend()
 {

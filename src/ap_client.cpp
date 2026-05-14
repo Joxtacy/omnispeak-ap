@@ -12,6 +12,7 @@
 #include "ap_hooks.h"
 
 #include "ck_def.h"
+#include "id_vl.h"
 
 #define AP_MAX_ITEMS		128
 #define AP_MAX_LOCATIONS	512
@@ -35,6 +36,20 @@ void ap_client_init(void)
     memset(ap_items, 0, sizeof(ap_items));
 
 	ap_initialized = true;
+
+    // Update the window title to reflect the chosen episode so OBS / window
+    // managers can tell multiple AP-Keen sessions apart. Safe to call before
+    // the AP server is connected; updated again post-connect with the slot.
+    if (ck_currentEpisode)
+    {
+        const char *epName =
+            ck_currentEpisode->ep == EP_CK4 ? "Keen 4" :
+            ck_currentEpisode->ep == EP_CK5 ? "Keen 5" :
+            ck_currentEpisode->ep == EP_CK6 ? "Keen 6" : "Keen";
+        char title[64];
+        snprintf(title, sizeof(title), "Omnispeak AP \xE2\x80\x94 %s", epName);
+        VL_SetWindowTitle(title);
+    }
 
     ap_load_connection_info();
 

@@ -445,6 +445,12 @@ static void VL_SDL3_WaitVBLs(int vbls)
 	SDL_Delay(vbls * 1000 / 70);
 }
 
+static void VL_SDL3_SetWindowTitle(const char *title)
+{
+	if (vl_sdl3_window)
+		SDL_SetWindowTitle(vl_sdl3_window, title);
+}
+
 // Unfortunately, we can't take advantage of designated initializers in C++.
 VL_Backend vl_sdl3_backend =
 	{
@@ -476,6 +482,7 @@ VL_Backend vl_sdl3_backend =
 		/*.updateRect =*/&VL_SDL3_UpdateRect,
 		/*.flushParams =*/&VL_SDL3_FlushParams,
 		/*.waitVBLs =*/&VL_SDL3_WaitVBLs,
+		/*.setWindowTitle =*/&VL_SDL3_SetWindowTitle,
 };
 
 VL_Backend *VL_Impl_GetBackend()
