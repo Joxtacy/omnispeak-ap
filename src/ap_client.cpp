@@ -212,28 +212,38 @@ void ap_client_init(void)
 		if (!is_deathlink)
 			return;
 
-		if (cmd.contains("data") && cmd["data"].contains("source"))
+		std::string source, cause;
+		if (cmd.contains("data"))
 		{
-			auto& src = cmd["data"]["source"];
-			if (src.is_string() && src.get<std::string>() == ap_slotname)
-				return; // ignore our own bounce
+			if (cmd["data"].contains("source") && cmd["data"]["source"].is_string())
+				source = cmd["data"]["source"].get<std::string>();
+			if (cmd["data"].contains("cause") && cmd["data"]["cause"].is_string())
+				cause = cmd["data"]["cause"].get<std::string>();
 		}
 
+		if (source == ap_slotname)
+			return; // ignore our own bounce
+
 		ap_pending_death = true;
+
+		// Surface the death in-game so the player sees who killed them and
+		// (when the sender included one) the flavor cause string.
+		char buf[80];
+		if (!cause.empty())
+			snprintf(buf, sizeof(buf), "%s: %s",
+			         source.empty() ? "Someone" : source.c_str(),
+			         cause.c_str());
+		else
+			snprintf(buf, sizeof(buf), "DeathLink from %s",
+			         source.empty() ? "Someone" : source.c_str());
+		ap_toast_push(buf);
 
 		FILE *f = fopen("ap_log.txt", "a");
 		if (f)
 		{
-			std::string source = "?";
-			std::string cause = "?";
-			if (cmd.contains("data"))
-			{
-				if (cmd["data"].contains("source") && cmd["data"]["source"].is_string())
-					source = cmd["data"]["source"].get<std::string>();
-				if (cmd["data"].contains("cause") && cmd["data"]["cause"].is_string())
-					cause = cmd["data"]["cause"].get<std::string>();
-			}
-			fprintf(f, "[AP] DeathLink received from %s: %s\n", source.c_str(), cause.c_str());
+			fprintf(f, "[AP] DeathLink received from %s: %s\n",
+			        source.empty() ? "?" : source.c_str(),
+			        cause.empty() ? "?" : cause.c_str());
 			fclose(f);
 		}
 	});
