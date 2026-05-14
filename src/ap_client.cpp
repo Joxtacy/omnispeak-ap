@@ -105,7 +105,7 @@ void ap_client_init(void)
 			ap_slotname,
 			ap_password,
 			7,
-			{"AP", "NoText"},
+			{"AP"},
 			ver
 		);
 	});
@@ -133,7 +133,7 @@ void ap_client_init(void)
 
     if (ap_death_link_enabled)
     {
-        ap->ConnectUpdate(false, 0, true, {"AP", "NoText", "DeathLink"});
+        ap->ConnectUpdate(false, 0, true, {"AP", "DeathLink"});
         FILE *f = fopen("ap_log.txt", "a");
         if (f)
         {
@@ -170,14 +170,30 @@ void ap_client_init(void)
 		}
 	});
 
-	// NOTE: "Sent X to Y" notifications used to live here as a
-	// set_print_json_handler subscription with NoText removed from
-	// ConnectSlot. That combination produced a black gameplay area on
-	// connect — likely because of server-side PrintJSON catch-up traffic
-	// fired during the slot-sync. We keep NoText on for now and only show
-	// the "Got X from Y" toasts (which use the structured ReceivedItems
-	// protocol path, unaffected by NoText). A future change can derive
-	// "Sent" toasts from LocationScouts results instead of PrintJSON.
+	// Items WE sent to other slots. items_received only fires for things
+	// granted TO us, so to cover outgoing items we listen to PrintJSON
+	// ItemSend events and filter to those where our slot is the source
+	// (item.player) and the receiver is someone else (*receiving). We
+	// drop the "NoText" tag on ConnectSlot/ConnectUpdate above so these
+	// PrintJSON messages actually arrive.
+	ap->set_print_json_handler(
+		[](const APClient::PrintJSONArgs& args) {
+			if (args.type != "ItemSend") return;
+			if (!args.item || !args.receiving) return;
+
+			int my_slot = ap->get_player_number();
+			if (args.item->player != my_slot) return;   // not from us
+			if (*args.receiving == my_slot) return;      // self-find, items_received covers it
+
+			std::string recv_game = ap->get_player_game(*args.receiving);
+			std::string item_name = ap->get_item_name(args.item->item, recv_game);
+			std::string recipient = ap->get_player_alias(*args.receiving);
+
+			char buf[80];
+			snprintf(buf, sizeof(buf), "Sent %s to %s",
+			         item_name.c_str(), recipient.c_str());
+			ap_toast_push(buf);
+		});
 
 	ap->set_bounced_handler([](const nlohmann::json& cmd) {
 		if (!ap_death_link_enabled)
