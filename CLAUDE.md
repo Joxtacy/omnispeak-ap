@@ -57,7 +57,7 @@ When a dump diverges the script writes printable diffs to `log/`.
 
 Omnispeak (the upstream engine) lives in `src/` as `ck_*.c` (Commander Keen game logic: maps, objects, physics, episodes) and `id_*.c` (id Software-style subsystems: `id_ca` cache manager, `id_mm` memory, `id_rf` refresh, `id_vl` video, `id_sd` sound, `id_in` input, `id_us` user/menu, `id_vh` video helper, `id_ti` titles, `id_fs` filesystem, `id_cfg` config). Episode-specific code is partitioned by prefix: `ck4_*`, `ck5_*`, `ck6_*`. Each episode can be compiled in/out with `WITH_KEEN4`/`5`/`6`.
 
-The AP layer is three files plus a launcher:
+The AP layer is four files:
 
 - `ap_client.cpp` — the only C++ TU. Wraps `apclientpp` (vendored under `src/third_party/apclientpp`) and the websocket stack. Owns the connection, item/location state, slot data, and the polling loop. Exposes a C API via `ap_client.h`.
 - `ap_hooks.c` / `ap_hooks.h` — C-side glue called from engine code. Holds globals like `ap_current_level`, `ap_current_episode`, `ap_has_pogo`, `ap_death_link_enabled`. Implements:
@@ -65,7 +65,7 @@ The AP layer is three files plus a launcher:
   - DeathLink send/receive with `ap_suppress_death_send` to break echo loops on incoming kills,
   - the in-game toast system (`ap_toast_push` / `ap_toast_tick` / `ap_toast_draw`) used for item-send, item-receive, and DeathLink notifications.
 - `ap_defs.h` — location ID encoding (`LOC_LEVEL_COMPLETE(ep, lvl)`, `LOC_KEYGEM(ep, lvl, gem)`, `LOC_SECURITY_KEYCARD(ep, lvl)`, `LOC_POINTSANITY(ep, lvl, tier)`) and the `AP_ITEM_*` enum. Location IDs are derived from base + episode-stride + level-stride; the AP world definition on the server side must agree on this layout.
-- `ap_launcher.c` — small Win32 GUI that just spawns `omnispeak.exe /Episode <N>`. Built into `AP Keen Launcher.exe` for releases.
+- `ap_picker.c` / `ap_picker.h` — cross-platform episode picker. `AP_Picker_PickEpisode` puts up a native `SDL_ShowMessageBox` dialog when multiple Keen episodes have data files present and `/EPISODE` wasn't given. Replaces the old Win32-only `AP Keen Launcher.exe`. No-op on non-SDL builds (`null`, `dos`).
 
 ### Engine integration points
 

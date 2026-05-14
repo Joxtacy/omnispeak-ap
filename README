@@ -38,7 +38,8 @@ QUICKSTART:
 	1. Download the current omnispeak-ap release.
 	2. Copy the required game files (see below) into the omnispeak directory.
 	3. Edit connection.txt with your server, port, and slot name.
-	4. Launch AP Keen Launcher.exe and select your episode.
+	4. Launch omnispeak; if the data files for more than one episode are
+	   present, a dialog will ask which episode to play.
 	5. Load into the world map to connect to server.
 
 In order to play the game in a multiworld, you must provide copies of the 
@@ -59,8 +60,10 @@ port, and slot name. Then start your game. After loading into the world map, you
 should see a message indicating you are connected to the server. If it fails, 
 verify your connection.txt settings or check ap_log.txt for possible errors.
 
-A launcher is provided to easily select which episode you wish to play. Simply 
-launch AP Keen Launcher.exe and click the button for the desired episode.
+When the game files for more than one supported episode are present in the
+omnispeak directory, launching omnispeak will pop up a native dialog asking
+which episode you wish to play. To skip the dialog (for example from a
+shortcut), pass /EPISODE 4, /EPISODE 5, or /EPISODE 6 on the command line.
 
 In-game toasts surface item sends, item receives, and (when DeathLink is
 enabled) the cause string of incoming deaths. They appear in the bottom-left

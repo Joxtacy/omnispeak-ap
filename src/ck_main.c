@@ -45,6 +45,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 //AP specific
 #include "ap_client.h"
+#include "ap_picker.h"
 
 /*
  * The 'episode' we're playing.
@@ -589,11 +590,13 @@ int main(int argc, char *argv[])
 #ifdef CK_ENABLE_PLAYLOOP_DUMPER
 	const char *dumperFilename = NULL;
 #endif
+	bool episodeFromArgv = false;
 
 	for (int i = 1; i < argc; ++i)
 	{
 		if (!CK_Cross_strcasecmp(argv[i], "/EPISODE"))
 		{
+			episodeFromArgv = true;
 			// A bit of stuff from the usual demo loop
 			if (argc >= i + 1)
 			{
@@ -665,6 +668,35 @@ int main(int argc, char *argv[])
 		}
 #endif
 	}
+
+	// AP: when no /EPISODE was given and the data for more than one
+	// supported Keen episode is installed, show a native dialog asking
+	// which one to play. Replaces the old Windows-only launcher.exe.
+	// Closing the dialog (or no SDL build) leaves the auto-detected
+	// default in place.
+#ifdef WITH_SDL
+	if (!episodeFromArgv)
+	{
+		int presentCount = 0;
+		for (int i = 0; ck_episodes[i]; ++i)
+			if (ck_episodes[i]->isPresent())
+				presentCount++;
+		if (presentCount > 1)
+		{
+			CK_EpisodeDef *picked = AP_Picker_PickEpisode(ck_episodes);
+			if (picked)
+			{
+				ck_currentEpisode = picked;
+				ck_episodeFile = picked->episodeFile;
+			}
+			else
+			{
+				// User dismissed the picker — treat as "quit".
+				return 0;
+			}
+		}
+	}
+#endif
 
 	// Load the EPISODE.CKx file.
 	if (!ck_episodeFile)

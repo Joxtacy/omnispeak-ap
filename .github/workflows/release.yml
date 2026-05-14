@@ -113,8 +113,8 @@ jobs:
           cp data/keen4/*.CK4 staging/
           cp data/keen5/*.CK5 staging/
           cp data/keen6e15/*.CK6 staging/
-          # Vendored launcher + runtime config templates
-          cp release-assets/"AP Keen Launcher.exe" staging/
+          # Runtime config templates (the Windows-only launcher exe has
+          # been replaced by an in-engine episode picker in omnispeak.exe).
           cp release-assets/connection.txt staging/
           cp release-assets/OMNISPK.CFG staging/
           cp release-assets/ap_uuid.txt staging/
