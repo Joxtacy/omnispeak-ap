@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include "ap_hooks.h"
 #include "ap_defs.h"
 #include "ap_client.h"
@@ -228,4 +229,96 @@ void ap_show_message(const char* msg)
 	US_PrintCentered(msg);
 	VH_UpdateScreen();
 	IN_WaitButton();
+}
+
+// ---------------------------------------------------------------------------
+// In-game toast notifications
+//
+// Newest toast lives at index 0 and is drawn at the bottom. Older toasts
+// stack upward and fade off as their TTL expires. Sprite sync ticks at ~70Hz
+// in gameplay, so AP_TOAST_TTL = 280 keeps each line on screen for ~4 s.
+
+#define AP_TOAST_MAX 4
+#define AP_TOAST_TTL 280
+#define AP_TOAST_MSG_LEN 80
+#define AP_TOAST_FONT 1
+#define AP_TOAST_TEXT_COLOUR 14
+#define AP_TOAST_BG_COLOUR 0
+// Baseline for the most recent toast. The in-game scoreboard sits along the
+// right edge, so we anchor toasts above where text-mode status messages would
+// land and keep them on the left half.
+#define AP_TOAST_Y_BASE 184
+#define AP_TOAST_X 4
+#define AP_TOAST_MAX_W 312
+
+typedef struct
+{
+	char msg[AP_TOAST_MSG_LEN];
+	int ttl;
+} ap_toast_t;
+
+static ap_toast_t ap_toasts[AP_TOAST_MAX];
+
+void ap_toast_push(const char* msg)
+{
+	if (!msg)
+		return;
+
+	// Shift older toasts up one slot, dropping the oldest.
+	for (int i = AP_TOAST_MAX - 1; i > 0; i--)
+		ap_toasts[i] = ap_toasts[i - 1];
+
+	strncpy(ap_toasts[0].msg, msg, AP_TOAST_MSG_LEN - 1);
+	ap_toasts[0].msg[AP_TOAST_MSG_LEN - 1] = '\0';
+	ap_toasts[0].ttl = AP_TOAST_TTL;
+}
+
+void ap_toast_tick(void)
+{
+	int ticks = SD_GetSpriteSync();
+	if (ticks <= 0)
+		ticks = 1;
+
+	for (int i = 0; i < AP_TOAST_MAX; i++)
+	{
+		if (ap_toasts[i].ttl > 0)
+		{
+			ap_toasts[i].ttl -= ticks;
+			if (ap_toasts[i].ttl < 0)
+				ap_toasts[i].ttl = 0;
+		}
+	}
+}
+
+void ap_toast_draw(void)
+{
+	// Invoked inline from RF_Refresh after the engine's tile/sprite work
+	// and dirty-flag cleanup, in the same slot rf_drawFunc would have
+	// occupied. VHB_* adds the engine's scroll offset and marks tiles
+	// dirty on all pages, so each subsequent frame's RFL_UpdateTiles
+	// repaints the underlying tiles fresh (clears expired-toast residue)
+	// before this function repaints the current toast on top.
+
+	int y = AP_TOAST_Y_BASE;
+
+	for (int i = 0; i < AP_TOAST_MAX; i++)
+	{
+		if (ap_toasts[i].ttl <= 0)
+			continue;
+
+		uint16_t w = 0, h = 0;
+		VH_MeasurePropString(ap_toasts[i].msg, &w, &h, AP_TOAST_FONT);
+		if (h == 0)
+			h = 8;
+		if (w > AP_TOAST_MAX_W)
+			w = AP_TOAST_MAX_W;
+
+		if (y - (int)h < 0)
+			break;
+
+		VHB_Bar(AP_TOAST_X - 2, y - 1, w + 4, h + 2, AP_TOAST_BG_COLOUR);
+		VHB_DrawPropString(ap_toasts[i].msg, AP_TOAST_X, y, AP_TOAST_FONT, AP_TOAST_TEXT_COLOUR);
+
+		y -= (int)h + 3;
+	}
 }

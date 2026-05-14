@@ -148,8 +148,36 @@ void ap_client_init(void)
     ap->set_items_received_handler(
 		[](const std::list<APClient::NetworkItem>& items) {
 		for (auto& item : items)
+		{
 			ap_client_give_item(item.item);
+
+			// Toast every received item. The PrintJSON handler covers
+			// "items I sent to others"; this handles "items I received".
+			std::string my_game = ap->get_game();
+			std::string item_name = ap->get_item_name(item.item, my_game);
+			char buf[80];
+			if (item.player == ap->get_player_number())
+			{
+				snprintf(buf, sizeof(buf), "Found %s", item_name.c_str());
+			}
+			else
+			{
+				std::string sender = ap->get_player_alias(item.player);
+				snprintf(buf, sizeof(buf), "Got %s from %s",
+				         item_name.c_str(), sender.c_str());
+			}
+			ap_toast_push(buf);
+		}
 	});
+
+	// NOTE: "Sent X to Y" notifications used to live here as a
+	// set_print_json_handler subscription with NoText removed from
+	// ConnectSlot. That combination produced a black gameplay area on
+	// connect — likely because of server-side PrintJSON catch-up traffic
+	// fired during the slot-sync. We keep NoText on for now and only show
+	// the "Got X from Y" toasts (which use the structured ReceivedItems
+	// protocol path, unaffected by NoText). A future change can derive
+	// "Sent" toasts from LocationScouts results instead of PrintJSON.
 
 	ap->set_bounced_handler([](const nlohmann::json& cmd) {
 		if (!ap_death_link_enabled)

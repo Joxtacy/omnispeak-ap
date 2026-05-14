@@ -2499,6 +2499,12 @@ void CK_PlayLoop()
 		if (ck_startingSavedGame)
 			ck_startingSavedGame = 0;
 
+		// AP toast tick + render. The actual draw happens INLINE inside
+		// RF_Refresh (id_rf.c) — registering as rf_drawFunc caused a
+		// black-screen regression on this build, so we patched the engine
+		// to call ap_toast_draw directly at the same render slot.
+		ap_toast_tick();
+
 		RF_Refresh();
 
 		if (ck_invincibilityTimer)

@@ -28,6 +28,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "id_cfg.h"
 #include "ck_cross.h"
 #include "ck_ep.h"
+#include "ap_hooks.h"
 #include "ck_play.h"
 
 #include <stdbool.h>
@@ -1444,6 +1445,13 @@ void RF_Refresh()
 
 	if (rf_drawFunc)
 		rf_drawFunc();
+
+	// AP HUD overlay. Direct call because registering this via
+	// RF_SetDrawFunc / rf_drawFunc causes a black play-area regression on
+	// this build (root cause not identified). ap_toast_draw uses VHB_* so
+	// the engine's dirty-flag bookkeeping handles per-page persistence and
+	// cleanup of expired toasts naturally.
+	ap_toast_draw();
 
 	// 0xef for the X-direction to match EGA keen's 2px horz scrolling.
 	VL_SetScrollCoords(RF_UnitToPixel(rf_scrollXUnit & 0xef), RF_UnitToPixel(rf_scrollYUnit & 0xff));

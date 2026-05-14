@@ -33,4 +33,13 @@ bool ap_has_level(int level, int episode);
 void ap_open_blocks(void);
 void ap_show_message(const char* msg);
 
+// Non-blocking in-game toast notifications.
+// ap_toast_push enqueues a message (newest stacks at bottom, older scrolls up).
+// ap_toast_tick decrements TTLs once per gameplay frame.
+// ap_toast_draw renders active toasts into the back buffer; intended for use
+// as rf_drawFunc inside RF_Refresh so it overlays the world.
+void ap_toast_push(const char* msg);
+void ap_toast_tick(void);
+void ap_toast_draw(void);
+
 #endif
