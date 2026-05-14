@@ -235,11 +235,12 @@ void ap_show_message(const char* msg)
 // In-game toast notifications
 //
 // Newest toast lives at index 0 and is drawn at the bottom. Older toasts
-// stack upward and fade off as their TTL expires. Sprite sync ticks at ~70Hz
-// in gameplay, so AP_TOAST_TTL = 280 keeps each line on screen for ~4 s.
+// stack upward and fade off as their TTL expires. Sprite sync ticks at
+// AP_TOAST_TICKS_PER_SEC per second in gameplay, so the configured duration
+// (seconds) becomes that many ticks of TTL.
 
 #define AP_TOAST_MAX 4
-#define AP_TOAST_TTL 280
+#define AP_TOAST_TICKS_PER_SEC 70
 #define AP_TOAST_MSG_LEN 80
 #define AP_TOAST_FONT 1
 #define AP_TOAST_TEXT_COLOUR 14
@@ -254,6 +255,15 @@ void ap_show_message(const char* msg)
 #define AP_TOAST_PAD_Y 2
 #define AP_TOAST_GAP 2
 
+// User-tunable enables and duration. Defaults preserve the original behavior
+// (every toast type on, 4-second TTL). Loaded from connection.txt at startup
+// in ap_load_connection_info().
+bool ap_toasts_enabled = true;
+bool ap_toasts_received_enabled = true;
+bool ap_toasts_sent_enabled = true;
+bool ap_toasts_deathlink_enabled = true;
+int  ap_toast_duration_secs = 4;
+
 typedef struct
 {
 	char msg[AP_TOAST_MSG_LEN];
@@ -262,10 +272,25 @@ typedef struct
 
 static ap_toast_t ap_toasts[AP_TOAST_MAX];
 
-void ap_toast_push(const char* msg)
+void ap_toast_push(ap_toast_category_t category, const char* msg)
 {
 	if (!msg)
 		return;
+	if (!ap_toasts_enabled)
+		return;
+
+	switch (category)
+	{
+		case AP_TOAST_RECEIVED:
+			if (!ap_toasts_received_enabled) return;
+			break;
+		case AP_TOAST_SENT:
+			if (!ap_toasts_sent_enabled) return;
+			break;
+		case AP_TOAST_DEATHLINK:
+			if (!ap_toasts_deathlink_enabled) return;
+			break;
+	}
 
 	// Shift older toasts up one slot, dropping the oldest.
 	for (int i = AP_TOAST_MAX - 1; i > 0; i--)
@@ -273,7 +298,10 @@ void ap_toast_push(const char* msg)
 
 	strncpy(ap_toasts[0].msg, msg, AP_TOAST_MSG_LEN - 1);
 	ap_toasts[0].msg[AP_TOAST_MSG_LEN - 1] = '\0';
-	ap_toasts[0].ttl = AP_TOAST_TTL;
+
+	int duration = ap_toast_duration_secs;
+	if (duration < 1) duration = 1;
+	ap_toasts[0].ttl = duration * AP_TOAST_TICKS_PER_SEC;
 }
 
 void ap_toast_tick(void)

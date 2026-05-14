@@ -1,4 +1,20 @@
 server: localhost
 port: 38281
 slotname: Test
-password: 
+password:
+
+# --- In-game toast notifications -------------------------------------------
+# These lines are OPTIONAL. Defaults match shipping behavior (everything on,
+# 4-second display). Accepted boolean values: 0/1, true/false, yes/no, on/off.
+
+# Master switch — set to off to silence every toast regardless of category.
+# toasts: on
+
+# Per-category toggles. Useful if you want, e.g., DeathLink to still kill you
+# in-game but not announce the cause on screen.
+# toasts_received: on    # "Got X from Y" / "Found X"
+# toasts_sent: on        # "Sent X to Y"
+# toasts_deathlink: on   # "<player>: <cause>" when another slot bounces a death
+
+# How long each toast stays on screen, in seconds. Must be a positive integer.
+# toast_duration: 4

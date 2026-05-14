@@ -62,9 +62,30 @@ verify your connection.txt settings or check ap_log.txt for possible errors.
 A launcher is provided to easily select which episode you wish to play. Simply 
 launch AP Keen Launcher.exe and click the button for the desired episode.
 
-At current, there is no in game feedback for when an item is sent or received.
-It is highly recommended to utilize a text client and/or Universal Tracker when
-playing.
+In-game toasts surface item sends, item receives, and (when DeathLink is
+enabled) the cause string of incoming deaths. They appear in the bottom-left
+of the play area, stack upward, and fade after a few seconds. A text client
+and/or Universal Tracker is still useful for chat and hints, but you no
+longer need it to see what items are flowing.
+
+The toast system can be tuned via additional optional lines in
+connection.txt:
+
+	# Master switch (default: on). Set to off to silence every toast.
+	toasts: on
+
+	# Per-category toggles (all default: on).
+	toasts_received: on    # "Got X from Y" / "Found X"
+	toasts_sent: on        # "Sent X to Y"
+	toasts_deathlink: on   # "<player>: <cause>" when DeathLink bounces in
+
+	# How long each toast stays on screen, in seconds (default: 4).
+	toast_duration: 4
+
+Booleans accept any of: 0/1, true/false, yes/no, on/off (case-insensitive).
+DeathLink toasts only fire when DeathLink itself is enabled for your slot,
+regardless of toasts_deathlink — the latter only suppresses the on-screen
+message, not the actual death.
 
 The end goal will be to complete the final level of each episode being played.
 	-CK5: Quantum Explosion Dynamo

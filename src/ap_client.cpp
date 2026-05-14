@@ -166,7 +166,7 @@ void ap_client_init(void)
 				snprintf(buf, sizeof(buf), "Got %s from %s",
 				         item_name.c_str(), sender.c_str());
 			}
-			ap_toast_push(buf);
+			ap_toast_push(AP_TOAST_RECEIVED, buf);
 		}
 	});
 
@@ -192,7 +192,7 @@ void ap_client_init(void)
 			char buf[80];
 			snprintf(buf, sizeof(buf), "Sent %s to %s",
 			         item_name.c_str(), recipient.c_str());
-			ap_toast_push(buf);
+			ap_toast_push(AP_TOAST_SENT, buf);
 		});
 
 	ap->set_bounced_handler([](const nlohmann::json& cmd) {
@@ -236,7 +236,7 @@ void ap_client_init(void)
 		else
 			snprintf(buf, sizeof(buf), "DeathLink from %s",
 			         source.empty() ? "Someone" : source.c_str());
-		ap_toast_push(buf);
+		ap_toast_push(AP_TOAST_DEATHLINK, buf);
 
 		FILE *f = fopen("ap_log.txt", "a");
 		if (f)
@@ -733,6 +733,27 @@ void ap_datastorage_set_level(int level, int episode)
 	ap->Set(key, nlohmann::json(nullptr), false, {op});
 }
 
+// Parse a key's value as a boolean. Accepts 0/1, true/false, yes/no, on/off
+// (case-insensitive, leading whitespace ok). Returns dflt if the value can't
+// be recognized.
+static bool ap_parse_bool(const char* s, bool dflt)
+{
+    if (!s) return dflt;
+    while (*s == ' ' || *s == '\t') s++;
+    if (!*s || *s == '\n' || *s == '\r') return dflt;
+
+    char c = *s;
+    if (c >= 'A' && c <= 'Z') c = (char)(c - 'A' + 'a');
+    char d = s[1];
+    if (d >= 'A' && d <= 'Z') d = (char)(d - 'A' + 'a');
+
+    if (c == '0' || c == 'f' || c == 'n') return false;
+    if (c == '1' || c == 't' || c == 'y') return true;
+    if (c == 'o' && d == 'n') return true;
+    if (c == 'o' && d == 'f') return false;
+    return dflt;
+}
+
 static void ap_load_connection_info(void)
 {
     FILE *f = fopen("connection.txt", "r");
@@ -766,6 +787,29 @@ static void ap_load_connection_info(void)
         else if (strncmp(line, "password:", 9) == 0)
         {
             sscanf(line + 9, " %63[^\n]", ap_password);
+        }
+        else if (strncmp(line, "toasts_received:", 16) == 0)
+        {
+            ap_toasts_received_enabled = ap_parse_bool(line + 16, ap_toasts_received_enabled);
+        }
+        else if (strncmp(line, "toasts_sent:", 12) == 0)
+        {
+            ap_toasts_sent_enabled = ap_parse_bool(line + 12, ap_toasts_sent_enabled);
+        }
+        else if (strncmp(line, "toasts_deathlink:", 17) == 0)
+        {
+            ap_toasts_deathlink_enabled = ap_parse_bool(line + 17, ap_toasts_deathlink_enabled);
+        }
+        else if (strncmp(line, "toasts:", 7) == 0)
+        {
+            // master switch — checked LAST so the specific keys don't false-match
+            ap_toasts_enabled = ap_parse_bool(line + 7, ap_toasts_enabled);
+        }
+        else if (strncmp(line, "toast_duration:", 15) == 0)
+        {
+            int secs = ap_toast_duration_secs;
+            if (sscanf(line + 15, "%d", &secs) == 1 && secs > 0)
+                ap_toast_duration_secs = secs;
         }
     }
 

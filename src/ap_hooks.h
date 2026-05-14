@@ -34,11 +34,28 @@ void ap_open_blocks(void);
 void ap_show_message(const char* msg);
 
 // Non-blocking in-game toast notifications.
-// ap_toast_push enqueues a message (newest stacks at bottom, older scrolls up).
+// ap_toast_push enqueues a message (newest renders at the baseline, older
+// toasts stack upward). The category is consulted against the per-category
+// enables below before queuing — passing AP_TOAST_RECEIVED for an
+// item-received notification lets the user silence those independently.
 // ap_toast_tick decrements TTLs once per gameplay frame.
-// ap_toast_draw renders active toasts into the back buffer; intended for use
-// as rf_drawFunc inside RF_Refresh so it overlays the world.
-void ap_toast_push(const char* msg);
+// ap_toast_draw renders active toasts directly into the back buffer; called
+// inline from RF_Refresh because registering it as rf_drawFunc triggers a
+// black-screen regression on this build.
+typedef enum
+{
+	AP_TOAST_RECEIVED  = 0,
+	AP_TOAST_SENT      = 1,
+	AP_TOAST_DEATHLINK = 2,
+} ap_toast_category_t;
+
+extern bool ap_toasts_enabled;
+extern bool ap_toasts_received_enabled;
+extern bool ap_toasts_sent_enabled;
+extern bool ap_toasts_deathlink_enabled;
+extern int  ap_toast_duration_secs;
+
+void ap_toast_push(ap_toast_category_t category, const char* msg);
 void ap_toast_tick(void);
 void ap_toast_draw(void);
 
