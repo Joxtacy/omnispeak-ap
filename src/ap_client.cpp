@@ -31,27 +31,39 @@ static int ap_translate_item(int id);
 static void ap_load_connection_info(void);
 bool ap_announce_victory(bool keen4done, bool keen5done);
 
+// Build "Omnispeak AP — Keen <N>[ — <slot>]" and push to the window title.
+// Called once at startup with the slot from connection.txt; never updated
+// later, so OBS window-capture sources stay locked to a stable string.
+static void ap_update_window_title(const char *slot)
+{
+    if (!ck_currentEpisode) return;
+    const char *epName =
+        ck_currentEpisode->ep == EP_CK4 ? "Keen 4" :
+        ck_currentEpisode->ep == EP_CK5 ? "Keen 5" :
+        ck_currentEpisode->ep == EP_CK6 ? "Keen 6" : "Keen";
+    char title[128];
+    if (slot && *slot)
+        snprintf(title, sizeof(title),
+                 "Omnispeak AP \xE2\x80\x94 %s \xE2\x80\x94 %s", epName, slot);
+    else
+        snprintf(title, sizeof(title),
+                 "Omnispeak AP \xE2\x80\x94 %s", epName);
+    VL_SetWindowTitle(title);
+}
+
 void ap_client_init(void)
 {
     memset(ap_items, 0, sizeof(ap_items));
 
 	ap_initialized = true;
 
-    // Update the window title to reflect the chosen episode so OBS / window
-    // managers can tell multiple AP-Keen sessions apart. Safe to call before
-    // the AP server is connected; updated again post-connect with the slot.
-    if (ck_currentEpisode)
-    {
-        const char *epName =
-            ck_currentEpisode->ep == EP_CK4 ? "Keen 4" :
-            ck_currentEpisode->ep == EP_CK5 ? "Keen 5" :
-            ck_currentEpisode->ep == EP_CK6 ? "Keen 6" : "Keen";
-        char title[64];
-        snprintf(title, sizeof(title), "Omnispeak AP \xE2\x80\x94 %s", epName);
-        VL_SetWindowTitle(title);
-    }
-
     ap_load_connection_info();
+
+    // Set the window title once, using the slot from connection.txt. We
+    // deliberately don't update it later (e.g. on slot-connected) so that
+    // OBS window-capture sources stay locked to a stable string for the
+    // whole session, even when streaming multiple AP-Keen instances.
+    ap_update_window_title(ap_slotname);
 
     #include "apuuid.hpp"
 
