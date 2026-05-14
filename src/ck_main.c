@@ -800,7 +800,8 @@ int main(int argc, char *argv[])
 
 	}
 
-	if (us_noWait || us_tedLevel || CFG_GetConfigBool("debugActive", false))
+	if (us_noWait || us_tedLevel || CFG_GetConfigBool("debugActive", false)
+	    || getenv("OMNISPEAK_DUMP_SCORE_ITEMS"))
 		ck_debugActive = true;
 
 	// Draw the ANSI "Press Key When Ready Screen" here

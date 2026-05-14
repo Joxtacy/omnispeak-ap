@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "ap_hooks.h"
 #include "ap_defs.h"
@@ -44,6 +45,21 @@ void ap_on_security_card_get(void)
 	int location_id = LOC_SECURITY_KEYCARD(ap_current_episode, ap_current_level);
 	ap_client_location_check(location_id);
 
+}
+
+void ap_on_extralife_get(int extralife_idx)
+{
+	// CK4 extra lives (Lifewater Flasks) use the FLASK base, CK5 extra
+	// lives (Vitalin Kegs) use the KEG base. The base picks itself from
+	// ap_current_episode.
+	int location_id;
+	if (ap_current_episode == AP_EPISODE_CK4)
+		location_id = LOC_FLASK(AP_EPISODE_CK4, ap_current_level, extralife_idx);
+	else if (ap_current_episode == AP_EPISODE_CK5)
+		location_id = LOC_KEG(AP_EPISODE_CK5, ap_current_level, extralife_idx);
+	else
+		return;
+	ap_client_location_check(location_id);
 }
 
 void ap_on_score_increase(int score)
@@ -138,6 +154,11 @@ void ap_apply_pending_death(void)
 
 bool ap_has_level(int level, int ep)
 {
+	// Score-item dumper bypasses level locks so every level is reachable
+	// without owning the AP unlock items.
+	if (getenv("OMNISPEAK_DUMP_SCORE_ITEMS"))
+		return true;
+
 	int ap_level_to_item_ck4[] = {
 		0,
 		AP_ITEM_BV,

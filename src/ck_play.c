@@ -862,8 +862,15 @@ void CK_WallDebug()
 
 bool CK_DebugKeys()
 {
+	// AP integrity: F10 cheats are disabled during normal play. They're
+	// re-enabled when OMNISPEAK_DUMP_SCORE_ITEMS is set so the user can
+	// godmode/no-clip their way through every level once to populate the
+	// apworld's keg/flask count tables.
+	if (!getenv("OMNISPEAK_DUMP_SCORE_ITEMS"))
+		return false;
+
 	// Border colour
-	/*if (IN_GetKeyState(IN_SC_B) && game_in_progress)
+	if (IN_GetKeyState(IN_SC_B) && game_in_progress)
 	{
 		char str[4];
 		uint16_t w, h;
@@ -1100,10 +1107,10 @@ bool CK_DebugKeys()
 		// Not sure why this'd be 'false', but that's what
 		// the disassembly says.
 		return false;
-	}*/
+	}
 
 	return false;
-	
+
 }
 
 // Check non-game keys

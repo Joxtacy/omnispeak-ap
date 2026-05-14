@@ -7,6 +7,8 @@
 #define AP_LOC_BASE_KEYGEM			20000
 #define AP_LOC_BASE_KEYCARD			30000
 #define AP_LOC_BASE_POINTSANITY		40000
+#define AP_LOC_BASE_KEG				50000
+#define AP_LOC_BASE_FLASK			60000
 
 //spacing
 #define AP_LOC_EPISODE_STRIDE		2000
@@ -37,6 +39,18 @@
 ((ep) * AP_LOC_EPISODE_STRIDE) + \
 ((lvl) * AP_LOC_LEVEL_STRIDE) + \
 (tier))
+
+#define LOC_KEG(ep, lvl, idx) \
+(AP_LOC_BASE_KEG + \
+((ep) * AP_LOC_EPISODE_STRIDE) + \
+((lvl) * AP_LOC_LEVEL_STRIDE) + \
+(idx))
+
+#define LOC_FLASK(ep, lvl, idx) \
+(AP_LOC_BASE_FLASK + \
+((ep) * AP_LOC_EPISODE_STRIDE) + \
+((lvl) * AP_LOC_LEVEL_STRIDE) + \
+(idx))
 
 typedef enum
 {

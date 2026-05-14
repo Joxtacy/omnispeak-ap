@@ -21,6 +21,16 @@ void ap_on_keygem_get(int item);
 void ap_on_security_card_get(void);
 void ap_on_wetsuit_get(void);
 void ap_on_score_increase(int points);
+// Extra-life pickups (item index 10 / foreground tile misc=27) give the
+// player +1 life on contact. The sprite is a Vitalin Keg in CK5 and a
+// Lifewater Flask in CK4 — apworld names locations accordingly, but they
+// all dispatch through this hook. Indices span both spawn paths
+// (info-layer CK_SpawnItem + tile-layer CK_KeenGetTileItem) so the
+// per-level scan order is one contiguous range.
+void ap_on_extralife_get(int extralife_idx);
+void ap_reset_extralife_counter(void);
+void ap_scan_tile_extralives(void);
+int ap_lookup_tile_extralife(int tileX, int tileY);
 void ap_on_death(const char* cause);
 void ap_apply_pending_death(void);
 

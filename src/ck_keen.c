@@ -104,6 +104,7 @@ void CK_KeenColFunc(CK_object *a, CK_object *b)
 		else if (b->user1 == 10)
 		{
 			ck_gameState.numLives++;
+			ap_on_extralife_get(b->user4);
 		}
 		else if (b->user1 == 11)
 		{
@@ -247,6 +248,9 @@ void CK_KeenGetTileItem(int tileX, int tileY, int itemNumber)
 	else if (itemNumber == 10)
 	{
 		ck_gameState.numLives++;
+		int idx = ap_lookup_tile_extralife(tileX, tileY);
+		if (idx >= 0)
+			ap_on_extralife_get(idx);
 	}
 	else if (itemNumber == 11)
 	{
@@ -270,6 +274,7 @@ void CK_KeenGetTileCentilife(int tileX, int tileY)
 	RF_ReplaceTiles(&emptyTile, 1, tileX, tileY, 1, 1);
 	SD_PlaySound(CK_SOUNDNUM(SOUND_GOTCENTILIFE));
 	CK_SpawnCentilifeNotify(tileX, tileY);
+
 	if (++ck_gameState.numCentilife == 100)
 	{
 		ck_gameState.numCentilife = 0;

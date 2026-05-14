@@ -17,13 +17,19 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
+#include <stdio.h>
+#include <stdlib.h>
+
 #include "id_heads.h"
+#include "id_ca.h"
 #include "id_rf.h"
+#include "id_ti.h"
 #include "id_us.h"
 #include "ck_act.h"
 #include "ck_def.h"
 #include "ck_phys.h"
 #include "ck_play.h"
+#include "ap_hooks.h"
 
 // This file contains some object functions (think, etc) which are common to
 // several episodes.
@@ -90,6 +96,95 @@ chunk_id_t CK_ItemSpriteChunks[] = {
 #endif
 };
 
+// Extra-life pickups (item index 10 from info layer, OR foreground tile
+// misc=27). Visually a Vitalin Keg in CK5, a Lifewater Flask in CK4. The
+// per-level index spans both spawn paths: info-layer items handled in
+// CK_SpawnItem store their index in obj->user4; tile-layer items get a
+// continuation index assigned by ap_scan_tile_extralives() and looked up
+// by (x, y) in CK_KeenGetTileItem.
+#define AP_TILE_EXTRALIFE_MAX 64
+
+static int ap_extralife_count_in_level = 0;
+
+typedef struct
+{
+	int tileX;
+	int tileY;
+	int index;
+} ap_tile_extralife_t;
+
+static ap_tile_extralife_t ap_tile_extralives[AP_TILE_EXTRALIFE_MAX];
+static int ap_tile_extralife_count = 0;
+
+void ap_reset_extralife_counter(void)
+{
+	ap_extralife_count_in_level = 0;
+	ap_tile_extralife_count = 0;
+
+	// Mark each level entry in the dump so even zero-extralife levels
+	// appear, confirming the dumper is active.
+	if (getenv("OMNISPEAK_DUMP_SCORE_ITEMS"))
+	{
+		FILE *f = fopen("score_item_dump.txt", "a");
+		if (f)
+		{
+			fprintf(f, "# level-enter ep=%d lvl=%d\n",
+			        ap_current_episode, ap_current_level);
+			fclose(f);
+		}
+	}
+}
+
+void ap_scan_tile_extralives(void)
+{
+	ap_tile_extralife_count = 0;
+
+	FILE *f = getenv("OMNISPEAK_DUMP_SCORE_ITEMS")
+	    ? fopen("score_item_dump.txt", "a")
+	    : NULL;
+
+	int w = CA_GetMapWidth();
+	int h = CA_GetMapHeight();
+	for (int y = 0; y < h; y++)
+	{
+		for (int x = 0; x < w; x++)
+		{
+			int misc = TI_ForeMisc(CA_TileAtPos(x, y, 1)) & 0x7F;
+			if (misc != 27)
+				continue;
+
+			int idx = ap_extralife_count_in_level++;
+			if (ap_tile_extralife_count < AP_TILE_EXTRALIFE_MAX)
+			{
+				ap_tile_extralives[ap_tile_extralife_count].tileX = x;
+				ap_tile_extralives[ap_tile_extralife_count].tileY = y;
+				ap_tile_extralives[ap_tile_extralife_count].index = idx;
+				ap_tile_extralife_count++;
+			}
+
+			if (f)
+			{
+				fprintf(f, "ep=%d lvl=%d item=extralife idx=%d tile=(%d,%d) source=tile\n",
+				        ap_current_episode, ap_current_level, idx, x, y);
+			}
+		}
+	}
+
+	if (f)
+		fclose(f);
+}
+
+int ap_lookup_tile_extralife(int tileX, int tileY)
+{
+	for (int i = 0; i < ap_tile_extralife_count; i++)
+	{
+		if (ap_tile_extralives[i].tileX == tileX
+		    && ap_tile_extralives[i].tileY == tileY)
+			return ap_tile_extralives[i].index;
+	}
+	return -1;
+}
+
 // Object and Centilife functions "should" be in ckx_obj1.c
 // but they are similar enough between episodes to put them all here
 void CK_SpawnItem(int tileX, int tileY, int itemNumber)
@@ -107,6 +202,27 @@ void CK_SpawnItem(int tileX, int tileY, int itemNumber)
 	obj->gfxChunk = CK_LookupChunk(CK_ItemSpriteChunks[itemNumber]);
 	obj->user2 = obj->gfxChunk;
 	obj->user3 = obj->gfxChunk + 2;
+	obj->user4 = 0;
+
+	// Info-layer extra lives (Vitalin Keg in CK5, Lifewater Flask in CK4)
+	// get a deterministic per-level index. Tile-layer extra lives in the
+	// same level continue from this counter via ap_scan_tile_extralives().
+	if (itemNumber == 10)
+	{
+		obj->user4 = ap_extralife_count_in_level++;
+		if (getenv("OMNISPEAK_DUMP_SCORE_ITEMS"))
+		{
+			FILE *f = fopen("score_item_dump.txt", "a");
+			if (f)
+			{
+				fprintf(f, "ep=%d lvl=%d item=extralife idx=%d tile=(%d,%d) source=info\n",
+				        ap_current_episode, ap_current_level,
+				        obj->user4, tileX, tileY);
+				fclose(f);
+			}
+		}
+	}
+
 	CK_SetAction(obj, CK_ACTION(CK_ACT_item));
 }
 
