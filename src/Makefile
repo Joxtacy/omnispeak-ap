@@ -184,7 +184,11 @@ ifneq (,$(findstring win,$(PLATFORM)))
 	# ap_client.cpp. Matches the dos/gcw0/native branches.
 	DEFAULT_BUILDASCPP = 1
 	LIBGL = -lopengl32
-	LIBS += -lcrypt32 -lws2_32
+	# comctl32: ap_picker.c uses TaskDialogIndirect for the episode dialog.
+	# It's loaded dynamically via GetProcAddress, so this link is belt-and-
+	# braces — but it also ensures the comctl32 import is on the link line
+	# for tooling that scans for it.
+	LIBS += -lcrypt32 -lws2_32 -lcomctl32
 endif
 ifeq ($(PLATFORM), win32)
 	OUTDIR_SUFFIX := -win32

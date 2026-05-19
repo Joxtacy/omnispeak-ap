@@ -1,5 +1,11 @@
 id ICON "../win32icon.ico"
 
+// Embed the application manifest. CREATEPROCESS_MANIFEST_RESOURCE_ID (1)
+// + RT_MANIFEST (24). The manifest declares the Common Controls v6
+// dependency, which is required for TaskDialogIndirect (used by the AP
+// episode picker) and which themes built-in Win32 dialogs.
+1 24 "omnispeak.manifest"
+
 1 VERSIONINFO
 FILEVERSION     1,0,0,0
 PRODUCTVERSION  1,0,0,0

@@ -454,3 +454,11 @@ target_link_libraries(omnispeak
 if (UNIX)
 	target_link_libraries(omnispeak m)
 endif()
+
+# On Windows, ap_picker.c uses TaskDialogIndirect (loaded dynamically
+# via GetProcAddress) from comctl32. Linking comctl32 ensures the import
+# is on the link line; the visual styles still require the v6 dependency
+# declared in src/omnispeak.manifest (embedded via windowsres.rc).
+if (WIN32)
+	target_link_libraries(omnispeak comctl32)
+endif()
