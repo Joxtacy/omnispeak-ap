@@ -126,6 +126,63 @@ static CK_EpisodeDef *AP_Picker_PickEpisode_Win32(CK_EpisodeDef **episodes)
 #include "SDL.h"
 #endif
 
+#ifdef __APPLE__
+#include <stdio.h>
+#include <string.h>
+
+/* osascript "choose from list" gives us a native, fully keyboard-driven
+ * list dialog (arrows, type-ahead, Return, Esc) without dragging in any
+ * Cocoa / Objective-C plumbing. NSAlert via SDL_ShowMessageBox only
+ * honours keyboard navigation when the user has Full Keyboard Access
+ * turned on system-wide, so we prefer this. */
+static CK_EpisodeDef *AP_Picker_PickEpisode_Mac(CK_EpisodeDef **episodes)
+{
+	CK_EpisodeDef *choices[AP_PICKER_MAX];
+	const char *labels[AP_PICKER_MAX];
+	int count = 0;
+	for (int i = 0; episodes[i] && count < AP_PICKER_MAX; ++i)
+	{
+		if (!episodes[i]->isPresent()) continue;
+		choices[count] = episodes[i];
+		labels[count] = ap_picker_label(episodes[i]);
+		count++;
+	}
+	if (count < 2) return NULL;
+
+	char cmd[2048];
+	int n = snprintf(cmd, sizeof(cmd),
+		"osascript -e 'choose from list {");
+	for (int i = 0; i < count; ++i)
+	{
+		n += snprintf(cmd + n, sizeof(cmd) - n,
+			"%s\"%s\"", i ? "," : "", labels[i]);
+	}
+	snprintf(cmd + n, sizeof(cmd) - n,
+		"} with title \"Omnispeak AP\""
+		" with prompt \"Which Commander Keen episode would you like to play?\""
+		" default items {\"%s\"}'",
+		labels[0]);
+
+	FILE *p = popen(cmd, "r");
+	if (!p) return NULL;
+	char out[256] = {0};
+	if (!fgets(out, sizeof(out), p))
+	{
+		pclose(p);
+		return NULL;
+	}
+	pclose(p);
+
+	size_t L = strlen(out);
+	while (L && (out[L - 1] == '\n' || out[L - 1] == '\r')) out[--L] = 0;
+	if (!L || !strcmp(out, "false")) return NULL;
+
+	for (int i = 0; i < count; ++i)
+		if (!strcmp(out, labels[i])) return choices[i];
+	return NULL;
+}
+#endif /* __APPLE__ */
+
 CK_EpisodeDef *AP_Picker_PickEpisode(CK_EpisodeDef **episodes)
 {
 	if (!episodes) return NULL;
@@ -135,6 +192,10 @@ CK_EpisodeDef *AP_Picker_PickEpisode(CK_EpisodeDef **episodes)
 	if (win != AP_PICKER_WIN32_FALLBACK) return win;
 	/* TaskDialogIndirect not available (no v6 comctl32) — fall through
 	 * to the SDL message box. */
+#endif
+
+#ifdef __APPLE__
+	return AP_Picker_PickEpisode_Mac(episodes);
 #endif
 
 	SDL_MessageBoxButtonData buttons[AP_PICKER_MAX];

@@ -164,6 +164,7 @@ ifeq ($(PLATFORM),)
 			LDFLAGS  += -L$(BREW_PREFIX)/opt/openssl@3/lib
 		endif
 		LIBGL = -framework OpenGL
+		MACFILES += $(BINDIR)/Omnispeak.command
 	endif
 endif
 
@@ -509,7 +510,7 @@ OBJ += $(CKOBJECTS:%=$(OBJDIR)/%)
 OBJ += $(OPLOBJECTS:%=$(OBJDIR)/%)
 DEPS := $(OBJ:%.o=%.d)
 
-all: $(OUTBIN) binfiles batfiles shellfiles
+all: $(OUTBIN) binfiles batfiles shellfiles macfiles
 
 help:
 	$(info $(HELP))
@@ -629,12 +630,20 @@ $(BINDIR)/keen5.sh:
 $(BINDIR)/keen6.sh:
 	echo -n "./omnispeak /EPISODE 6 $(SHELLOPTS)" >$@
 
+# macOS double-clickable launcher: Finder opens .command files in Terminal,
+# which starts in the user's home dir, so the script has to cd to its own
+# location before exec'ing the binary.
+macfiles: $(MACFILES)
+$(BINDIR)/Omnispeak.command:
+	printf '#!/bin/sh\ncd "$$(dirname "$$0")" && exec ./omnispeak "$$@"\n' >$@
+	chmod +x $@
+
 # auto-download of SDL
 $(SDL_DIR):
 	wget -O- $(SDL_URL) | tar xz -C ..
 
 clean:
-	rm -f $(OUTBIN) $(OUTBIN)/dumpprinter $(OUTBIN)/varparser $(OBJ) $(OBJDIR)/windowsres.res $(OBJDIR)/*.h $(DEPS) $(K4DATA) $(K5DATA) $(K6DATA) $(BATFILES) $(SHELLFILES)
+	rm -f $(OUTBIN) $(OUTBIN)/dumpprinter $(OUTBIN)/varparser $(OBJ) $(OBJDIR)/windowsres.res $(OBJDIR)/*.h $(DEPS) $(K4DATA) $(K5DATA) $(K6DATA) $(BATFILES) $(SHELLFILES) $(MACFILES)
 
 RMDIR_ERRMSG = Note: Some of the 'bin' directories still contain user data. They have not been removed.
 export RMDIR_ERRMSG
@@ -646,4 +655,4 @@ distclean:
 
 -include $(DEPS)
 
-.PHONY: all help dumpconfig setup binfiles batfiles shellfiles keen4data keen5data keen6data clean distclean dumpprinter varparser
+.PHONY: all help dumpconfig setup binfiles batfiles shellfiles macfiles keen4data keen5data keen6data clean distclean dumpprinter varparser

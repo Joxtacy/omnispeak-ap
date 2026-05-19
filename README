@@ -65,6 +65,17 @@ omnispeak directory, launching omnispeak will pop up a native dialog asking
 which episode you wish to play. To skip the dialog (for example from a
 shortcut), pass /EPISODE 4, /EPISODE 5, or /EPISODE 6 on the command line.
 
+On macOS:
+	The build produces a double-clickable launcher, Omnispeak.command, in
+	the same directory as the binary. Finder opens it in Terminal, which
+	then runs omnispeak with the data files in CWD.
+
+	First-run Gatekeeper warning ("Omnispeak.command can't be opened
+	because it is from an unidentified developer"): right-click the file
+	in Finder and choose Open. Alternatively, clear the quarantine flag
+	from a terminal:
+	    xattr -d com.apple.quarantine Omnispeak.command
+
 In-game toasts surface item sends, item receives, and (when DeathLink is
 enabled) the cause string of incoming deaths. They appear in the bottom-left
 of the play area, stack upward, and fade after a few seconds. A text client
