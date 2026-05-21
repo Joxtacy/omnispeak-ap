@@ -97,6 +97,12 @@ typedef struct SD_Backend
 	void (*waitTick)();
 	unsigned int (*detect)();
 	void (*setOPL3)(bool on);
+	/* Optional. When the host window loses/gains focus the input
+	 * layer calls these, allowing the audio backend to suspend its
+	 * timer thread and drop any queued samples that would otherwise
+	 * play out as a stale backlog on return.
+	 * May be NULL — callers must null-check. */
+	void (*onFocusChange)(bool focused);
 } SD_Backend;
 
 SD_Backend *SD_Impl_GetBackend();
@@ -109,5 +115,11 @@ void SD_SetLastTimeCount(int32_t newval);
 uint16_t SD_GetSpriteSync(void);
 void SD_SetSpriteSync(uint16_t newval);
 void SD_WaitTick(void);
+
+/* Window focus notifications. Called by the input layer when the host
+ * window loses or gains focus. Drains the audio backlog so audio doesn't
+ * lag the visible game state on return. Safe to call when sound isn't
+ * running. */
+void SD_HandleFocusChange(bool focused);
 
 #endif

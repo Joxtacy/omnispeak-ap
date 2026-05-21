@@ -94,6 +94,14 @@ static volatile bool SD_SDL_useTimerFallback = false;
 static uint64_t SD_SDL_nextTickAt = 0;
 static SDL_Thread *SD_SDL_t0Thread = 0;
 
+// Set true while the host window is unfocused. The timer thread and
+// alOut still tick the OPL emulator and sd_timeCount (so game-loop
+// busy-waits on time can still progress) but stop pushing samples into
+// SDL's audio queue — otherwise the queue would grow while the OS
+// throttles the process in the background, and the backlog would play
+// out as audio lag when focus returned.
+static volatile bool SD_SDL_audioPaused = false;
+
 static SDL_cond *SD_SDL_TimerConditionVar;
 static bool SD_SDL_WaitTicksSpin = false;
 
@@ -294,11 +302,17 @@ void SD_SDL_alOut(uint8_t reg, uint8_t val)
 #ifdef SD_SDL_WITH_QUEUEAUDIO
 		if (sd_sdl_queueAudio)
 		{
-			YM3812UpdateOne(&oplChip, SD_ALOut_Samples, length);
-			if (SD_PC_Speaker_On)
-				PCSpeakerUpdateOne(SD_ALOut_Samples, length);
-			SDL_QueueAudio(1, SD_ALOut_Samples, length * numChannels * 2);
-			sd_sdl_bonusSamplesQueued += length;
+			// Don't push into the queue while the window is unfocused;
+			// the OPL write above already updated chip state, which is
+			// what the next post-resume sample generation will read.
+			if (!SD_SDL_audioPaused)
+			{
+				YM3812UpdateOne(&oplChip, SD_ALOut_Samples, length);
+				if (SD_PC_Speaker_On)
+					PCSpeakerUpdateOne(SD_ALOut_Samples, length);
+				SDL_QueueAudio(1, SD_ALOut_Samples, length * numChannels * 2);
+				sd_sdl_bonusSamplesQueued += length;
+			}
 		}
 		else
 #endif
@@ -413,7 +427,7 @@ int SD_SDL_t0InterruptThread(void *param)
 #endif
 		// Top up to min buffer size if below.
 #ifdef SD_SDL_WITH_QUEUEAUDIO
-		if (SD_SDL_AudioSubsystem_Up && sd_sdl_queueAudio && sd_sdl_queueAudioMinBufSize)
+		if (SD_SDL_AudioSubsystem_Up && sd_sdl_queueAudio && sd_sdl_queueAudioMinBufSize && !SD_SDL_audioPaused)
 		{
 			int curQueueLen = SDL_GetQueuedAudioSize(1) / (numChannels * sizeof(int16_t));
 			if (curQueueLen < sd_sdl_queueAudioMinBufSize)
@@ -444,7 +458,7 @@ int SD_SDL_t0InterruptThread(void *param)
 				SDL_CondBroadcast(SD_SDL_TimerConditionVar);
 			SD_SDL_nextTickAt += SD_SDL_timerDivisor;
 #ifdef SD_SDL_WITH_QUEUEAUDIO
-			if (SD_SDL_AudioSubsystem_Up && sd_sdl_queueAudio)
+			if (SD_SDL_AudioSubsystem_Up && sd_sdl_queueAudio && !SD_SDL_audioPaused)
 			{
 				int length = SD_SDL_SamplesInCurrentPart - sd_sdl_bonusSamplesQueued;
 				sd_sdl_bonusSamplesQueued -= SD_SDL_SamplesInCurrentPart;
@@ -656,6 +670,48 @@ void SD_SDL_SetOPL3(bool on)
 	YM3812Write(&oplChip, 0x104, 0x00);
 }
 
+void SD_SDL_OnFocusChange(bool focused)
+{
+	if (!SD_SDL_AudioSubsystem_Up)
+		return;
+
+	if (!focused)
+	{
+		// Window lost focus: stop new samples being queued and stop
+		// the device from draining whatever's already queued. No need
+		// to flush — we'll drop the residue on focus regain.
+		SD_SDL_audioPaused = true;
+		SDL_PauseAudio(1);
+		return;
+	}
+
+	// Window regained focus. The timer thread is still running (it has
+	// to, so sd_timeCount keeps advancing for the game loop) but may
+	// have accumulated a large nextTickAt gap if the OS throttled it
+	// during the background period. Snap nextTickAt forward so the
+	// thread doesn't fire a flurry of catch-up ticks the moment we
+	// unpause, drop any stale samples, then re-enable playback.
+	SDL_LockAudio();
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+	uint64_t currPitTicks = (uint64_t)(SDL_GetPerformanceCounter()) * PC_PIT_RATE / SDL_GetPerformanceFrequency();
+#else
+	uint64_t currPitTicks = (uint64_t)(SDL_GetTicks()) * PC_PIT_RATE / 1000;
+#endif
+	SD_SDL_nextTickAt = currPitTicks;
+	SD_ALOut_SamplesStart = SD_ALOut_SamplesEnd = 0;
+	SD_SDL_SampleOffsetInSound = 0;
+	SDL_UnlockAudio();
+
+#ifdef SD_SDL_WITH_QUEUEAUDIO
+	if (sd_sdl_queueAudio)
+		SDL_ClearQueuedAudio(1);
+#endif
+	sd_sdl_bonusSamplesQueued = 0;
+
+	SD_SDL_audioPaused = false;
+	SDL_PauseAudio(0);
+}
+
 SD_Backend sd_sdl_backend = {
 	.startup = SD_SDL_Startup,
 	.shutdown = SD_SDL_Shutdown,
@@ -666,7 +722,8 @@ SD_Backend sd_sdl_backend = {
 	.setTimer0 = SD_SDL_SetTimer0,
 	.waitTick = SD_SDL_WaitTick,
 	.detect = SD_SDL_Detect,
-	.setOPL3 = SD_SDL_SetOPL3
+	.setOPL3 = SD_SDL_SetOPL3,
+	.onFocusChange = SD_SDL_OnFocusChange
 };
 
 SD_Backend *SD_Impl_GetBackend()

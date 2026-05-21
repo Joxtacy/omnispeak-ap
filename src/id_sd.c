@@ -807,3 +807,9 @@ void SD_WaitTick(void)
 	if (sd_backend->waitTick)
 		sd_backend->waitTick();
 }
+
+void SD_HandleFocusChange(bool focused)
+{
+	if (sd_backend && sd_backend->onFocusChange)
+		sd_backend->onFocusChange(focused);
+}

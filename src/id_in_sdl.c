@@ -336,6 +336,16 @@ static void IN_SDL_HandleSDLEvent(SDL_Event *event)
 				INL_StopJoy(i);
 		}
 		break;
+	case SDL_WINDOWEVENT:
+		// Suspend / resume audio with focus so the SDL queue doesn't
+		// accumulate a backlog while the OS throttles the process in
+		// the background — otherwise that backlog plays out as audio
+		// lag once the window returns to the foreground.
+		if (event->window.event == SDL_WINDOWEVENT_FOCUS_LOST)
+			SD_HandleFocusChange(false);
+		else if (event->window.event == SDL_WINDOWEVENT_FOCUS_GAINED)
+			SD_HandleFocusChange(true);
+		break;
 #endif
 	}
 }
