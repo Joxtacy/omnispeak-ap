@@ -25,11 +25,22 @@ static char ap_password[64] = {0};
 static int ap_port = 0;
 static int episode = 0;
 
+// Locally tracked boss completions. Set when the player actually finishes
+// the boss level in this client; loaded from AP DataStorage on slot connect
+// so two-episode goals survive disconnect/reconnect. Do NOT derive these
+// from the server's "checked locations" set — AP marks a location as
+// checked whenever its item is delivered (e.g. via !collect / auto-collect
+// when another player goals), which can flip the boss-level location to
+// "checked" without the player ever beating it.
+static bool local_keen4_done = false;
+static bool local_keen5_done = false;
+
 static APClient* ap = nullptr;
 
 static int ap_translate_item(int id);
 static void ap_load_connection_info(void);
-bool ap_announce_victory(bool keen4done, bool keen5done);
+bool ap_announce_victory(void);
+static std::string ap_boss_done_key(int ep);
 
 // Build "Omnispeak AP — Keen <N>[ — <slot>]" and push to the window title.
 // Called once at startup with the slot from connection.txt; never updated
@@ -169,8 +180,25 @@ void ap_client_init(void)
         }
     }
 
+    // Seed local boss-done flags from DataStorage. The retrieved handler
+    // will set them and re-evaluate victory in case the player goaled in
+    // a previous session but the GOAL status update never went through.
+    ap->Get({ap_boss_done_key(AP_EPISODE_CK4), ap_boss_done_key(AP_EPISODE_CK5)});
+
 	ap_show_message("Slot Connected.");
 });
+
+    ap->set_retrieved_handler([](const std::map<std::string, nlohmann::json>& keys) {
+        std::string k4 = ap_boss_done_key(AP_EPISODE_CK4);
+        std::string k5 = ap_boss_done_key(AP_EPISODE_CK5);
+        auto it4 = keys.find(k4);
+        if (it4 != keys.end() && it4->second.is_boolean() && it4->second.get<bool>())
+            local_keen4_done = true;
+        auto it5 = keys.find(k5);
+        if (it5 != keys.end() && it5->second.is_boolean() && it5->second.get<bool>())
+            local_keen5_done = true;
+        ap_announce_victory();
+    });
 
     ap->set_items_received_handler(
 		[](const std::list<APClient::NetworkItem>& items) {
@@ -383,18 +411,51 @@ void ap_client_give_item(int item_id)
 	}
 }
 
-bool ap_announce_victory(bool keen4done, bool keen5done)
+static std::string ap_boss_done_key(int ep)
+{
+	int player = ap ? ap->get_player_number() : -1;
+	const char* tag = (ep == AP_EPISODE_CK4) ? "keen4_done_" : "keen5_done_";
+	return std::string(tag) + std::to_string(player);
+}
+
+void ap_mark_boss_complete(int ep)
+{
+	if (ep == AP_EPISODE_CK4)
+	{
+		if (local_keen4_done) return;
+		local_keen4_done = true;
+	}
+	else if (ep == AP_EPISODE_CK5)
+	{
+		if (local_keen5_done) return;
+		local_keen5_done = true;
+	}
+	else
+	{
+		return;
+	}
+
+	if (ap && ap->get_state() == APClient::State::SLOT_CONNECTED)
+	{
+		APClient::DataStorageOperation op;
+		op.operation = "replace";
+		op.value = true;
+		ap->Set(ap_boss_done_key(ep), nlohmann::json(false), false, {op});
+	}
+}
+
+bool ap_announce_victory(void)
 {
 	if (!ap || ap->get_state() != APClient::State::SLOT_CONNECTED) return false;
 
 	bool victory = false;
 
 	if (episode == 1)
-		victory = keen4done;
+		victory = local_keen4_done;
 	else if (episode == 2)
-		victory = keen5done;
+		victory = local_keen5_done;
 	else
-		victory = keen4done && keen5done;
+		victory = local_keen4_done && local_keen5_done;
 
 	if (victory)
 	{

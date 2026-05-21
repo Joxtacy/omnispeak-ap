@@ -28,10 +28,16 @@ void ap_on_level_complete(void)
 {
 	int location_id = LOC_LEVEL_COMPLETE(ap_current_episode, ap_current_level);
 	ap_client_location_check(location_id);
-	
-	bool keen4done = ap_is_checked(LOC_LEVEL_COMPLETE(AP_EPISODE_CK4, AP_LEVEL_BEAN_WITH_BACON_MEGAROCKET));
-	bool keen5done = ap_is_checked(LOC_LEVEL_COMPLETE(AP_EPISODE_CK5, AP_LEVEL_QUANTUM_EXPLOSION_DYNAMO));
-	ap_announce_victory(keen4done, keen5done);
+
+	// Goal completion is tracked locally — the server's "checked locations"
+	// set can be polluted by !collect / auto-collect when other players
+	// goal, which would otherwise trigger a false victory.
+	if (ap_current_episode == AP_EPISODE_CK4 && ap_current_level == AP_LEVEL_BEAN_WITH_BACON_MEGAROCKET)
+		ap_mark_boss_complete(AP_EPISODE_CK4);
+	else if (ap_current_episode == AP_EPISODE_CK5 && ap_current_level == AP_LEVEL_QUANTUM_EXPLOSION_DYNAMO)
+		ap_mark_boss_complete(AP_EPISODE_CK5);
+
+	ap_announce_victory();
 }
 
 void ap_on_keygem_get(int item)

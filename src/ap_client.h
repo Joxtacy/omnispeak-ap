@@ -14,7 +14,8 @@ void ap_apply_level_items(int level, int ep);
 void ap_reapply_item(int local_id);
 void ap_resync_items();
 void ap_datastorage_set_level(int level, int episode);
-bool ap_announce_victory(bool keen4done, bool keen5done);
+void ap_mark_boss_complete(int episode);
+bool ap_announce_victory(void);
 void ap_send_death(const char* cause);
 
 #endif
