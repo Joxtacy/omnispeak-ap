@@ -62,6 +62,16 @@ static int sd_oplDelaySamples;
 static bool sd_nukedBufferWrites;
 
 #define PC_PIT_RATE 1193182
+// Cap on how far behind real time the t0 interrupt thread is allowed to
+// fall before it skips missed PIT ticks instead of replaying them. The
+// OS background-throttles our process when the host window loses focus,
+// so without a cap the loop replays every missed tick the moment we get
+// CPU again — when sd_sdl_queueAudio is on that floods SDL's queue with
+// seconds of catch-up samples, which then play out as audible audio
+// lag. Skipping ticks instead causes sd_timeCount to advance at slightly
+// less than real time across the unfocused interval, which the game
+// loop tolerates.
+#define SD_SDL_MAX_CATCHUP_PIT_TICKS (PC_PIT_RATE / 2)
 #define SD_SFX_PART_RATE 140
 /* In the original exe, upon setting a rate of 140Hz or 560Hz for some
  * interrupt handler, the value 1192030 divided by the desired rate is
@@ -94,13 +104,23 @@ static volatile bool SD_SDL_useTimerFallback = false;
 static uint64_t SD_SDL_nextTickAt = 0;
 static SDL_Thread *SD_SDL_t0Thread = 0;
 
-// Set true while the host window is unfocused. The timer thread and
-// alOut still tick the OPL emulator and sd_timeCount (so game-loop
-// busy-waits on time can still progress) but stop pushing samples into
-// SDL's audio queue — otherwise the queue would grow while the OS
-// throttles the process in the background, and the backlog would play
-// out as audio lag when focus returned.
+// Set true while the host window is unfocused AND we've chosen to
+// suspend audio on focus loss. The timer thread and alOut still tick
+// the OPL emulator and sd_timeCount (so game-loop busy-waits on time
+// can still progress) but stop pushing samples into SDL's audio queue
+// — otherwise the queue would grow while the OS throttles the process
+// in the background, and the backlog would play out as audio lag when
+// focus returned. When SD_SDL_pauseOnFocusLoss is false this flag
+// stays false and audio keeps playing in the background; the catch-up
+// cap in SD_SDL_t0InterruptThread keeps the post-throttle backlog
+// bounded.
 static volatile bool SD_SDL_audioPaused = false;
+
+// Controls whether SD_SDL_OnFocusChange suspends audio when the host
+// window loses focus. Default is false (audio continues in the
+// background). Settable via sd_sdl_pauseOnFocusLoss in OMNISPK.CFG or
+// the /PAUSEONFOCUSLOSS command-line argument.
+static bool SD_SDL_pauseOnFocusLoss = false;
 
 static SDL_cond *SD_SDL_TimerConditionVar;
 static bool SD_SDL_WaitTicksSpin = false;
@@ -425,6 +445,14 @@ int SD_SDL_t0InterruptThread(void *param)
 #else
 		uint64_t currPitTicks = (uint64_t)(SDL_GetTicks()) * PC_PIT_RATE / 1000;
 #endif
+		// If we've fallen significantly behind real time, skip the
+		// missed PIT ticks rather than replaying them. See the comment
+		// on SD_SDL_MAX_CATCHUP_PIT_TICKS for why.
+		if (currPitTicks > SD_SDL_nextTickAt &&
+			currPitTicks - SD_SDL_nextTickAt > SD_SDL_MAX_CATCHUP_PIT_TICKS)
+		{
+			SD_SDL_nextTickAt = currPitTicks;
+		}
 		// Top up to min buffer size if below.
 #ifdef SD_SDL_WITH_QUEUEAUDIO
 		if (SD_SDL_AudioSubsystem_Up && sd_sdl_queueAudio && sd_sdl_queueAudioMinBufSize && !SD_SDL_audioPaused)
@@ -515,12 +543,16 @@ void SD_SDL_Startup(void)
 
 	SD_SDL_useTimerFallback = !CFG_GetConfigBool("sd_sdl_audioSync", false);
 
+	SD_SDL_pauseOnFocusLoss = CFG_GetConfigBool("sd_sdl_pauseOnFocusLoss", false);
+
 	for (int i = 0; i < us_argc; ++i)
 	{
 		if (!CK_Cross_strcasecmp(us_argv[i], "/AUDIOSYNC"))
 			SD_SDL_useTimerFallback = false;
 		if (!CK_Cross_strcasecmp(us_argv[i], "/NUKEDOPL3"))
 			sd_oplEmulator = SD_OPL_EMULATOR_NUKED;
+		if (!CK_Cross_strcasecmp(us_argv[i], "/PAUSEONFOCUSLOSS"))
+			SD_SDL_pauseOnFocusLoss = true;
 	}
 
 	// Check if we should use SDL_QueueAudio
@@ -673,6 +705,13 @@ void SD_SDL_SetOPL3(bool on)
 void SD_SDL_OnFocusChange(bool focused)
 {
 	if (!SD_SDL_AudioSubsystem_Up)
+		return;
+
+	// If the user opted to keep audio playing in the background, do
+	// nothing here. The catch-up cap in SD_SDL_t0InterruptThread keeps
+	// the post-throttle backlog bounded without us having to suspend
+	// the device.
+	if (!SD_SDL_pauseOnFocusLoss)
 		return;
 
 	if (!focused)
