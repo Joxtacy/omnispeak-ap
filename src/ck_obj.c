@@ -98,10 +98,11 @@ chunk_id_t CK_ItemSpriteChunks[] = {
 
 // Extra-life pickups (item index 10 from info layer, OR foreground tile
 // misc=27). Visually a Vitalin Keg in CK5, a Lifewater Flask in CK4. The
-// per-level index spans both spawn paths: info-layer items handled in
-// CK_SpawnItem store their index in obj->user4; tile-layer items get a
-// continuation index assigned by ap_scan_tile_extralives() and looked up
-// by (x, y) in CK_KeenGetTileItem.
+// per-level index spans both spawn paths: both info-layer items (handled
+// in CK_SpawnItem) and tile-layer items (handled in ap_scan_tile_extralives)
+// record their index in the shared tile table, keyed by (tileX, tileY).
+// obj->user4 must not be used — it is part of the engine's object dump
+// and any write to it would break the demo-regression tests.
 #define AP_TILE_EXTRALIFE_MAX 64
 
 static int ap_extralife_count_in_level = 0;
@@ -205,11 +206,21 @@ void CK_SpawnItem(int tileX, int tileY, int itemNumber)
 	obj->user4 = 0;
 
 	// Info-layer extra lives (Vitalin Keg in CK5, Lifewater Flask in CK4)
-	// get a deterministic per-level index. Tile-layer extra lives in the
-	// same level continue from this counter via ap_scan_tile_extralives().
+	// get a deterministic per-level index recorded in the shared tile
+	// table — keyed by (tileX, tileY), not by obj->user4. obj->user4 is
+	// part of the engine's object dump and any write to it would break
+	// the demo-regression tests. The tile-layer scan that follows
+	// continues from the same counter via ap_scan_tile_extralives().
 	if (itemNumber == 10)
 	{
-		obj->user4 = ap_extralife_count_in_level++;
+		int idx = ap_extralife_count_in_level++;
+		if (ap_tile_extralife_count < AP_TILE_EXTRALIFE_MAX)
+		{
+			ap_tile_extralives[ap_tile_extralife_count].tileX = tileX;
+			ap_tile_extralives[ap_tile_extralife_count].tileY = tileY;
+			ap_tile_extralives[ap_tile_extralife_count].index = idx;
+			ap_tile_extralife_count++;
+		}
 		if (getenv("OMNISPEAK_DUMP_SCORE_ITEMS"))
 		{
 			FILE *f = fopen("score_item_dump.txt", "a");
@@ -217,7 +228,7 @@ void CK_SpawnItem(int tileX, int tileY, int itemNumber)
 			{
 				fprintf(f, "ep=%d lvl=%d item=extralife idx=%d tile=(%d,%d) source=info\n",
 				        ap_current_episode, ap_current_level,
-				        obj->user4, tileX, tileY);
+				        idx, tileX, tileY);
 				fclose(f);
 			}
 		}

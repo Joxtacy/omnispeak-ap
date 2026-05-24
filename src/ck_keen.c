@@ -108,7 +108,14 @@ void CK_KeenColFunc(CK_object *a, CK_object *b)
 		else if (b->user1 == 10)
 		{
 			ck_gameState.numLives++;
-			ap_on_extralife_get(b->user4);
+			// Index recorded at spawn time keyed by tile coordinate —
+			// recover the tile coord from the (stationary) item's
+			// posX/posY. See pointitem branch above for why we avoid
+			// obj->user4.
+			int idx = ap_lookup_tile_extralife(RF_UnitToTile(b->posX),
+			                                   RF_UnitToTile(b->posY));
+			if (idx >= 0)
+				ap_on_extralife_get(idx);
 		}
 		else if (b->user1 == 11)
 		{
