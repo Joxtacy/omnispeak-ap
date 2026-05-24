@@ -98,7 +98,11 @@ void CK_KeenColFunc(CK_object *a, CK_object *b)
 
 		if (b->user1 < 4)
 		{
-			//ck_gameState.keyGems[b->user1]++; //disable for AP purposes
+			// AP normally grants gems via received items, not pickups —
+			// but demo replay needs the original gamestate write so the
+			// recorded dumps match.
+			if (IN_DemoGetMode() != IN_Demo_Off)
+				ck_gameState.keyGems[b->user1]++;
 			ap_on_keygem_get(b->user1);
 		}
 		else if (b->user1 == 10)
@@ -113,7 +117,11 @@ void CK_KeenColFunc(CK_object *a, CK_object *b)
 #ifdef WITH_KEEN5
 		else if ((ck_currentEpisode->ep == EP_CK5) && (b->user1 == 12))
 		{
-			//ck_gameState.ep.ck5.securityCard = 1; //disable for AP purposes
+			// AP normally grants the security card via a received item,
+			// not the pickup itself — but demo replay needs the original
+			// gamestate write so the recorded dumps match.
+			if (IN_DemoGetMode() != IN_Demo_Off)
+				ck_gameState.ep.ck5.securityCard = 1;
 			ap_on_security_card_get();
 		}
 #endif
@@ -1127,9 +1135,14 @@ void CK_KeenJumpThink(CK_object *obj)
 		}
 		else // Normal or Hard
 		{
-			//CK_PhysGravityHigh(obj);
-			//AP - normalize gravity so logic is consistent
-			CK_PhysGravityMid(obj);
+			// AP - normalize gravity so logic is consistent across
+			// difficulties. Demo playback falls back to the original
+			// CK_PhysGravityHigh so the recorded demos stay deterministic
+			// against tests/demoN.dump4/5.
+			if (IN_DemoGetMode() != IN_Demo_Off)
+				CK_PhysGravityHigh(obj);
+			else
+				CK_PhysGravityMid(obj);
 		}
 
 		if (obj->velY > 0 && obj->currentAction != CK_ACTION(CK_ACT_keenFall1) && obj->currentAction != CK_ACTION(CK_ACT_keenFall2))
@@ -1380,9 +1393,13 @@ void CK_KeenPogoThink(CK_object *obj)
 		}
 		else
 		{
-			//CK_PhysGravityHigh(obj);
-			//AP - normalize gravity for consistent logic
-			CK_PhysGravityMid(obj);
+			// AP - normalize gravity for consistent logic. Demo playback
+			// falls back to the original CK_PhysGravityHigh so the recorded
+			// demos stay deterministic against tests/demoN.dump4/5.
+			if (IN_DemoGetMode() != IN_Demo_Off)
+				CK_PhysGravityHigh(obj);
+			else
+				CK_PhysGravityMid(obj);
 		}
 	}
 	else

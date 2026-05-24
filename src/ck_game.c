@@ -616,6 +616,16 @@ void CK_LoadLevel(bool doCache, bool silent)
 	ap_datastorage_set_level(ap_current_level, ap_current_episode);
 	ap_resync_items();
 
+	// Demo replay needs pogo and stunner unlocked because the recorded
+	// inputs press both — without this the AP item-gates in CK_HandleInput*
+	// block velY assignment and Keen never gets the recorded jump/shot
+	// state, diverging the dump on the first input frame.
+	if (IN_DemoGetMode() != IN_Demo_Off)
+	{
+		ap_has_pogo = true;
+		ap_has_stunner = true;
+	}
+
 	CA_CacheMap(ck_gameState.currentLevel);
 	RF_NewMap();
 	CA_ClearMarks();
