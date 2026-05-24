@@ -6,9 +6,15 @@
 #define AP_LOC_BASE_LEVEL_COMPLETE	10000
 #define AP_LOC_BASE_KEYGEM			20000
 #define AP_LOC_BASE_KEYCARD			30000
-#define AP_LOC_BASE_POINTSANITY		40000
+// 40000 was the original pointsanity base when class+instance were packed
+// into AP_LOC_LEVEL_STRIDE = 100. Per-level instance counts (up to 124 for
+// 100-pt items in CK5 lvl 1) blew through that scheme, so pointsanity moved
+// to a roomier per-class layout at 100000+ (see AP_LOC_BASE_POINTSANITY
+// below). 40000–99999 is intentionally unused — do not repurpose without
+// coordinating with the apworld.
 #define AP_LOC_BASE_KEG				50000
 #define AP_LOC_BASE_FLASK			60000
+#define AP_LOC_BASE_POINTSANITY		100000
 
 //spacing
 #define AP_LOC_EPISODE_STRIDE		2000
@@ -34,11 +40,29 @@
 ((ep) * AP_LOC_EPISODE_STRIDE) + \
 ((lvl) * AP_LOC_LEVEL_STRIDE))
 
-#define LOC_POINTSANITY(ep, lvl, tier) \
+// Pointsanity uses its own strides, separate from the global
+// AP_LOC_*_STRIDE values above, because real maps have up to ~124 instances
+// of a single point class per level — too dense to share AP_LOC_LEVEL_STRIDE.
+// Layout:
+//   loc = BASE + cls * CLASS_STRIDE + ep * EP_STRIDE + lvl * LVL_STRIDE + inst
+// cls 0..5 maps to point values 100/200/500/1000/2000/5000 (engine item
+// index minus 4). Round-decimal addressing lets a reader eyeball the class
+// from the 100k digit: 1xxxxx = 100pt, 2xxxxx = 200pt, ..., 6xxxxx = 5000pt.
+// Apworld decodes with:
+//   cls      = (loc - BASE) / CLASS_STRIDE
+//   ep       = ((loc - BASE) % CLASS_STRIDE) / EP_STRIDE
+//   lvl      = ((loc - BASE) % EP_STRIDE) / LVL_STRIDE
+//   instance = (loc - BASE) % LVL_STRIDE
+#define AP_POINTSANITY_CLASS_STRIDE		100000
+#define AP_POINTSANITY_EPISODE_STRIDE	20000
+#define AP_POINTSANITY_LEVEL_STRIDE		1000
+
+#define LOC_POINTSANITY(cls, ep, lvl, inst) \
 (AP_LOC_BASE_POINTSANITY + \
-((ep) * AP_LOC_EPISODE_STRIDE) + \
-((lvl) * AP_LOC_LEVEL_STRIDE) + \
-(tier))
+((cls) * AP_POINTSANITY_CLASS_STRIDE) + \
+((ep)  * AP_POINTSANITY_EPISODE_STRIDE) + \
+((lvl) * AP_POINTSANITY_LEVEL_STRIDE) + \
+(inst))
 
 #define LOC_KEG(ep, lvl, idx) \
 (AP_LOC_BASE_KEG + \

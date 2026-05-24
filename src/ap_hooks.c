@@ -68,6 +68,44 @@ void ap_on_extralife_get(int extralife_idx)
 	ap_client_location_check(location_id);
 }
 
+// Per-class enable for pointsanity. Flip an entry to true to start emitting
+// location checks for that point class. Coordinate flips with an apworld
+// release that declares the matching LOC_POINTSANITY locations.
+static const bool ap_pointsanity_class_enabled[6] = {
+	false,  // class 0: 100 pt
+	false,  // class 1: 200 pt
+	false,  // class 2: 500 pt
+	false,  // class 3: 1000 pt
+	false,  // class 4: 2000 pt
+	true,   // class 5: 5000 pt
+};
+
+void ap_on_pointitem_get(int point_class, int instance_index)
+{
+	if (point_class < 0 || point_class > 5)
+		return;
+	if (!ap_pointsanity_class_enabled[point_class])
+		return;
+	// Upper bound matches AP_POINTSANITY_LEVEL_STRIDE; exceeding it would
+	// collide with the next level's instance 0 in the apworld's decode.
+	// Real maps cap out around 124, well under the 1000-slot stride.
+	if (instance_index < 0 || instance_index >= AP_POINTSANITY_LEVEL_STRIDE)
+		return;
+	// Match the extralife hook: only emit for episodes the apworld supports.
+	if (ap_current_episode != AP_EPISODE_CK4 && ap_current_episode != AP_EPISODE_CK5)
+		return;
+
+	int location_id = LOC_POINTSANITY(
+		point_class, ap_current_episode, ap_current_level,
+		instance_index);
+	ap_client_location_check(location_id);
+	// No in-game toast here — matches ap_on_extralife_get. The standard
+	// "Item received" toast that fires when the server sends an item back
+	// is enough feedback; an unconditional "Found N pt pickup" toast would
+	// also fire on slots that don't have pointsanity enabled (engine has
+	// no slot_data awareness for the per-class enable), confusing players.
+}
+
 void ap_on_score_increase(int score)
 {
 	ap_points_gained = score - ap_starting_points;

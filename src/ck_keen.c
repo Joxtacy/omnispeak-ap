@@ -105,6 +105,21 @@ void CK_KeenColFunc(CK_object *a, CK_object *b)
 				ck_gameState.keyGems[b->user1]++;
 			ap_on_keygem_get(b->user1);
 		}
+		else if (b->user1 >= 4 && b->user1 <= 9)
+		{
+			// Point-pickup items (100..5000 pt). Score already added by
+			// CK_IncreaseScore above; we only emit the AP location check.
+			// The (class, instance) was recorded at spawn time keyed by
+			// tile coordinate — recover the tile coord from the (stationary)
+			// item's posX/posY. Storing the index in obj->user4 would have
+			// been simpler but user4 is part of the engine object dump and
+			// would break demo-regression tests.
+			int cls, idx;
+			if (ap_lookup_tile_pointitem(RF_UnitToTile(b->posX),
+			                             RF_UnitToTile(b->posY),
+			                             &cls, &idx))
+				ap_on_pointitem_get(cls, idx);
+		}
 		else if (b->user1 == 10)
 		{
 			ck_gameState.numLives++;
@@ -259,6 +274,14 @@ void CK_KeenGetTileItem(int tileX, int tileY, int itemNumber)
 	if (itemNumber < 4)
 	{
 		ck_gameState.keyGems[itemNumber] = true;
+	}
+	else if (itemNumber >= 4 && itemNumber <= 9)
+	{
+		// Tile-layer point pickups. Score already added by CK_IncreaseScore
+		// above; emit the AP location check using the scan-time index.
+		int cls, idx;
+		if (ap_lookup_tile_pointitem(tileX, tileY, &cls, &idx))
+			ap_on_pointitem_get(cls, idx);
 	}
 	else if (itemNumber == 10)
 	{

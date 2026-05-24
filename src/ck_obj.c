@@ -117,6 +117,27 @@ typedef struct
 static ap_tile_extralife_t ap_tile_extralives[AP_TILE_EXTRALIFE_MAX];
 static int ap_tile_extralife_count = 0;
 
+// Pointsanity scaffolding. Mirrors the extralife setup but keyed by point
+// class (0..5 for 100/200/500/1000/2000/5000 pt items). Info-layer items
+// (item index 4..9) get obj->user4 = ap_pointitem_count_in_level[class]++
+// inside CK_SpawnItem; tile-layer items (foreground tile misc 21..26) get
+// a continuation index assigned by ap_scan_tile_pointitems() and looked up
+// by (x, y) in CK_KeenGetTileItem.
+#define AP_TILE_POINTITEM_MAX 256
+
+static int ap_pointitem_count_in_level[6] = {0, 0, 0, 0, 0, 0};
+
+typedef struct
+{
+	int tileX;
+	int tileY;
+	int cls;
+	int index;
+} ap_tile_pointitem_t;
+
+static ap_tile_pointitem_t ap_tile_pointitems[AP_TILE_POINTITEM_MAX];
+static int ap_tile_pointitem_count = 0;
+
 void ap_reset_extralife_counter(void)
 {
 	ap_extralife_count_in_level = 0;
@@ -134,6 +155,13 @@ void ap_reset_extralife_counter(void)
 			fclose(f);
 		}
 	}
+}
+
+void ap_reset_pointitem_counters(void)
+{
+	for (int i = 0; i < 6; i++)
+		ap_pointitem_count_in_level[i] = 0;
+	ap_tile_pointitem_count = 0;
 }
 
 void ap_scan_tile_extralives(void)
@@ -186,6 +214,64 @@ int ap_lookup_tile_extralife(int tileX, int tileY)
 	return -1;
 }
 
+void ap_scan_tile_pointitems(void)
+{
+	ap_tile_pointitem_count = 0;
+
+	FILE *f = getenv("OMNISPEAK_DUMP_SCORE_ITEMS")
+	    ? fopen("score_item_dump.txt", "a")
+	    : NULL;
+
+	int w = CA_GetMapWidth();
+	int h = CA_GetMapHeight();
+	for (int y = 0; y < h; y++)
+	{
+		for (int x = 0; x < w; x++)
+		{
+			int misc = TI_ForeMisc(CA_TileAtPos(x, y, 1)) & 0x7F;
+			// MF_Points100..MF_Points5000 are misc 21..26, mapping to
+			// classes 0..5 respectively.
+			if (misc < 21 || misc > 26)
+				continue;
+
+			int cls = misc - 21;
+			int idx = ap_pointitem_count_in_level[cls]++;
+			if (ap_tile_pointitem_count < AP_TILE_POINTITEM_MAX)
+			{
+				ap_tile_pointitems[ap_tile_pointitem_count].tileX = x;
+				ap_tile_pointitems[ap_tile_pointitem_count].tileY = y;
+				ap_tile_pointitems[ap_tile_pointitem_count].cls = cls;
+				ap_tile_pointitems[ap_tile_pointitem_count].index = idx;
+				ap_tile_pointitem_count++;
+			}
+
+			if (f)
+			{
+				fprintf(f, "ep=%d lvl=%d item=points cls=%d idx=%d tile=(%d,%d) source=tile\n",
+				        ap_current_episode, ap_current_level, cls, idx, x, y);
+			}
+		}
+	}
+
+	if (f)
+		fclose(f);
+}
+
+bool ap_lookup_tile_pointitem(int tileX, int tileY, int *out_class, int *out_index)
+{
+	for (int i = 0; i < ap_tile_pointitem_count; i++)
+	{
+		if (ap_tile_pointitems[i].tileX == tileX
+		    && ap_tile_pointitems[i].tileY == tileY)
+		{
+			if (out_class) *out_class = ap_tile_pointitems[i].cls;
+			if (out_index) *out_index = ap_tile_pointitems[i].index;
+			return true;
+		}
+	}
+	return false;
+}
+
 // Object and Centilife functions "should" be in ckx_obj1.c
 // but they are similar enough between episodes to put them all here
 void CK_SpawnItem(int tileX, int tileY, int itemNumber)
@@ -229,6 +315,36 @@ void CK_SpawnItem(int tileX, int tileY, int itemNumber)
 				fprintf(f, "ep=%d lvl=%d item=extralife idx=%d tile=(%d,%d) source=info\n",
 				        ap_current_episode, ap_current_level,
 				        idx, tileX, tileY);
+				fclose(f);
+			}
+		}
+	}
+	// Info-layer point items (100..5000 pt) get a per-class, per-level
+	// index recorded in the shared tile table — keyed by (tileX, tileY),
+	// not by obj->user4. obj->user4 is part of the engine's object dump
+	// and any write to it would break the demo-regression tests. The
+	// tile-layer scan that follows continues from the same per-class
+	// counter via ap_scan_tile_pointitems().
+	else if (itemNumber >= 4 && itemNumber <= 9)
+	{
+		int cls = itemNumber - 4;
+		int idx = ap_pointitem_count_in_level[cls]++;
+		if (ap_tile_pointitem_count < AP_TILE_POINTITEM_MAX)
+		{
+			ap_tile_pointitems[ap_tile_pointitem_count].tileX = tileX;
+			ap_tile_pointitems[ap_tile_pointitem_count].tileY = tileY;
+			ap_tile_pointitems[ap_tile_pointitem_count].cls = cls;
+			ap_tile_pointitems[ap_tile_pointitem_count].index = idx;
+			ap_tile_pointitem_count++;
+		}
+		if (getenv("OMNISPEAK_DUMP_SCORE_ITEMS"))
+		{
+			FILE *f = fopen("score_item_dump.txt", "a");
+			if (f)
+			{
+				fprintf(f, "ep=%d lvl=%d item=points cls=%d idx=%d tile=(%d,%d) source=info\n",
+				        ap_current_episode, ap_current_level,
+				        cls, idx, tileX, tileY);
 				fclose(f);
 			}
 		}

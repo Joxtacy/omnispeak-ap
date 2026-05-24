@@ -31,6 +31,16 @@ void ap_on_extralife_get(int extralife_idx);
 void ap_reset_extralife_counter(void);
 void ap_scan_tile_extralives(void);
 int ap_lookup_tile_extralife(int tileX, int tileY);
+
+// Pointsanity: point-pickup items (100/200/500/1000/2000/5000 pts) as
+// location checks. point_class is engine item index minus 4 (0..5, where
+// 5 = 5000 pt). instance_index is the per-level, per-class scan index,
+// continuous across the info-layer and tile-layer scan passes. Hook is
+// safe to call for disabled classes — it gates internally.
+void ap_on_pointitem_get(int point_class, int instance_index);
+void ap_reset_pointitem_counters(void);
+void ap_scan_tile_pointitems(void);
+bool ap_lookup_tile_pointitem(int tileX, int tileY, int *out_class, int *out_index);
 void ap_on_death(const char* cause);
 void ap_apply_pending_death(void);
 

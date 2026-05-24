@@ -632,14 +632,18 @@ void CK_LoadLevel(bool doCache, bool silent)
 
 	// Reset the extra-life counter before scanInfoLayer. Info-layer extra
 	// lives (item index 10) are indexed during CK_SpawnItem; the tile-layer
-	// scan that follows continues from the same counter.
+	// scan that follows continues from the same counter. The pointitem
+	// counters follow the same lifecycle for point pickups (item index 4..9).
 	ap_reset_extralife_counter();
+	ap_reset_pointitem_counters();
 
 	CK_SetupObjArray(); // This is done inside ScanInfoLayer in CK4
 	ck_currentEpisode->scanInfoLayer();
 
-	// Scan the foreground tile layer for extra-life tiles (misc=27).
+	// Scan the foreground tile layer for extra-life tiles (misc=27) and
+	// point-item tiles (misc=21..26).
 	ap_scan_tile_extralives();
+	ap_scan_tile_pointitems();
 
 	if (ca_mapOn == 0)
 	{
