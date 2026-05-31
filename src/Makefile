@@ -166,6 +166,16 @@ ifeq ($(PLATFORM),)
 		LIBGL = -framework OpenGL
 		MACFILES += $(BINDIR)/Omnispeak.command
 	endif
+	# Native MSYS2/MinGW build on Windows: uname -s reports MINGW64_NT-* /
+	# MSYS_NT-* / CYGWIN_NT-*, so PLATFORM is empty and we'd otherwise fall
+	# into the Linux defaults (-lGL, no winsock). Wire the same Windows libs
+	# the cross-compile branch below uses, but skip its SDL-fetch / static-
+	# link defaults since native MSYS2 has system SDL2 via pacman.
+	ifneq (,$(or $(findstring MINGW,$(UNAME_S)),$(findstring MSYS,$(UNAME_S)),$(findstring CYGWIN,$(UNAME_S))))
+		EXE_EXT = .exe
+		LIBGL = -lopengl32
+		LIBS += -lcrypt32 -lws2_32 -lcomctl32
+	endif
 endif
 
 CXXFLAGS += -Ithird_party -Ithird_party/apclientpp -Ithird_party/wswrap/include -Ithird_party/valijson/include
