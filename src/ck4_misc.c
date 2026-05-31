@@ -883,15 +883,30 @@ void CK4_KeenSwimCol(CK_object *a, CK_object *b)
 
 		if (b->user1 < 4)
 		{
-			//ck_gameState.keyGems[b->user1]++; //Disable for AP purposes
-			
-			//AP handle getting keygem
+			// AP normally grants gems via received items, not pickups —
+			// but demo replay needs the original gamestate write so the
+			// recorded dumps match.
+			if (IN_DemoGetMode() != IN_Demo_Off)
+				ck_gameState.keyGems[b->user1]++;
 			ap_on_keygem_get(b->user1);
-
+		}
+		else if (b->user1 >= 4 && b->user1 <= 9)
+		{
+			// Mirror CK_KeenColFunc: emit the pointsanity location check
+			// for 100..5000 pt info-layer pickups grabbed while swimming.
+			int cls, idx;
+			if (ap_lookup_tile_pointitem(RF_UnitToTile(b->posX),
+			                             RF_UnitToTile(b->posY),
+			                             &cls, &idx))
+				ap_on_pointitem_get(cls, idx);
 		}
 		else if (b->user1 == 10)
 		{
 			ck_gameState.numLives++;
+			int idx = ap_lookup_tile_extralife(RF_UnitToTile(b->posX),
+			                                   RF_UnitToTile(b->posY));
+			if (idx >= 0)
+				ap_on_extralife_get(idx);
 		}
 		else if (b->user1 == 11)
 		{

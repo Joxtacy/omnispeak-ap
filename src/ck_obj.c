@@ -166,7 +166,10 @@ void ap_reset_pointitem_counters(void)
 
 void ap_scan_tile_extralives(void)
 {
-	ap_tile_extralife_count = 0;
+	// Do NOT reset ap_tile_extralife_count here — info-layer items were
+	// already added by CK_SpawnItem during scanInfoLayer and live at the
+	// start of the table. This scan appends tile-layer items after them.
+	// Both lifecycle resets happen up front in ap_reset_extralife_counter.
 
 	FILE *f = getenv("OMNISPEAK_DUMP_SCORE_ITEMS")
 	    ? fopen("score_item_dump.txt", "a")
@@ -216,7 +219,10 @@ int ap_lookup_tile_extralife(int tileX, int tileY)
 
 void ap_scan_tile_pointitems(void)
 {
-	ap_tile_pointitem_count = 0;
+	// Do NOT reset ap_tile_pointitem_count here — info-layer items were
+	// already added by CK_SpawnItem during scanInfoLayer and live at the
+	// start of the table. This scan appends tile-layer items after them.
+	// Both lifecycle resets happen up front in ap_reset_pointitem_counters.
 
 	FILE *f = getenv("OMNISPEAK_DUMP_SCORE_ITEMS")
 	    ? fopen("score_item_dump.txt", "a")
