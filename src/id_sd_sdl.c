@@ -567,6 +567,17 @@ void SD_SDL_Startup(void)
 #endif
 	sd_sdl_queueAudioMinBufSize = CFG_GetConfigInt("sd_sdl_queueAudioMinBufSize", 0);
 
+	// audioSync clocks SDL_t0Service from the audio callback, but
+	// queueAudio mode installs no callback (see SDL_OpenAudio below) — the
+	// combination leaves nothing to advance sd_timeCount, freezing the
+	// game loop. This bites Windows in particular, where queueAudio is on
+	// by default. audioSync wins; drop queueAudio.
+	if (!SD_SDL_useTimerFallback && sd_sdl_queueAudio)
+	{
+		CK_Cross_LogMessage(CK_LOG_MSG_WARNING, "audioSync is incompatible with queueAudio; disabling queueAudio.\n");
+		sd_sdl_queueAudio = false;
+	}
+
 	sd_oplDelaySamples = CFG_GetConfigInt("sd_oplDelaySamples", SD_SDL_AudioSpec.freq / 10000);
 	sd_nukedBufferWrites = CFG_GetConfigBool("sd_nukedBufferWrites", sd_oplDelaySamples == 0);
 
