@@ -5,4 +5,5 @@ bin*
 obj*
 build*
 third_party_pinned/
+log/
 .DS_Store
