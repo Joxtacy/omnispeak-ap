@@ -30,8 +30,11 @@ jobs:
 
       - name: Validate version format
         run: |
-          if ! echo "${{ inputs.version }}" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
-            echo "::error::Version must be in semver format (e.g. 0.0.6)"
+          # Allow an optional prerelease suffix (e.g. 0.0.7-rc.1). A suffixed
+          # version is published as a GitHub prerelease (see "Create release"),
+          # so it stays off releases/latest and is safe to hand out for testing.
+          if ! echo "${{ inputs.version }}" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$'; then
+            echo "::error::Version must be semver, optionally with a prerelease suffix (e.g. 0.0.6 or 0.0.7-rc.1)"
             exit 1
           fi
 
@@ -48,7 +51,10 @@ jobs:
       - name: Generate changelog
         id: changelog
         run: |
-          PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          # Exclude prerelease tags (anything with a hyphen, e.g. v0.0.7-rc.1) so a
+          # final release's changelog spans the whole feature set, not just the
+          # commits since the last RC.
+          PREV_TAG=$(git describe --tags --abbrev=0 --exclude='*-*' 2>/dev/null || echo "")
           if [ -z "$PREV_TAG" ]; then
             LOG=$(git log --pretty=format:"- %s" HEAD)
           else
@@ -142,7 +148,15 @@ jobs:
             echo "VERSION already at ${{ inputs.version }}, skipping commit"
           else
             git commit -m "chore: release v${{ inputs.version }}"
-            git push origin "HEAD:${{ github.ref_name }}"
+            # The VERSION bump is bookkeeping only — the release ships VERSION in
+            # the zip, not from a branch. When dispatched on a tag there is no
+            # branch to push to (and an unqualified HEAD:<tag> push would create a
+            # stray branch), so skip it.
+            if [ "${{ github.ref_type }}" = "branch" ]; then
+              git push origin "HEAD:${{ github.ref_name }}"
+            else
+              echo "Dispatched on a ${{ github.ref_type }} (${{ github.ref_name }}); skipping branch push."
+            fi
           fi
           git tag "v${{ inputs.version }}"
           git push origin "v${{ inputs.version }}"
@@ -152,6 +166,9 @@ jobs:
         with:
           tag_name: "v${{ inputs.version }}"
           name: "v${{ inputs.version }}"
+          # A version with a prerelease suffix (e.g. 0.0.7-rc.1) is marked as a
+          # prerelease so releases/latest keeps pointing at the last real release.
+          prerelease: ${{ contains(inputs.version, '-') }}
           body: |
             ## Changelog
 
