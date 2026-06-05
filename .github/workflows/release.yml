@@ -7,6 +7,10 @@ on:
         description: "Release version (e.g. 0.0.6)"
         required: true
         type: string
+      highlights:
+        description: "Optional one-line summary shown at the top of the notes"
+        required: false
+        type: string
 
 permissions:
   contents: write
@@ -50,20 +54,39 @@ jobs:
 
       - name: Generate changelog
         id: changelog
+        env:
+          HIGHLIGHTS: ${{ inputs.highlights }}
         run: |
           # Exclude prerelease tags (anything with a hyphen, e.g. v0.0.7-rc.1) so a
           # final release's changelog spans the whole feature set, not just the
           # commits since the last RC.
           PREV_TAG=$(git describe --tags --abbrev=0 --exclude='*-*' 2>/dev/null || echo "")
-          if [ -z "$PREV_TAG" ]; then
-            LOG=$(git log --pretty=format:"- %s" HEAD)
-          else
-            LOG=$(git log --pretty=format:"- %s" "${PREV_TAG}..HEAD")
-          fi
+          if [ -z "$PREV_TAG" ]; then RANGE="HEAD"; else RANGE="${PREV_TAG}..HEAD"; fi
+          # Drop the self-referential "chore: release vX" bump commits.
+          RAW=$(git log --pretty=format:"%s" "$RANGE" | grep -vE '^chore(\([^)]*\))?: release ' || true)
+
+          # Bucket conventional commits by type and strip the "type(scope)!: "
+          # prefix so the notes read like prose. Anything that isn't feat/fix
+          # lands under Maintenance. `|| true` keeps `set -e` happy when a
+          # bucket is empty.
+          strip='s/^[a-z]+(\([^)]*\))?!?: //'
+          NEW=$(printf '%s\n' "$RAW"   | grep -E '^feat(\([^)]*\))?!?:'        | sed -E "$strip" || true)
+          FIX=$(printf '%s\n' "$RAW"   | grep -E '^fix(\([^)]*\))?!?:'         | sed -E "$strip" || true)
+          OTHER=$(printf '%s\n' "$RAW" | grep -vE '^(feat|fix)(\([^)]*\))?!?:' | sed -E "$strip" || true)
+
           {
-            echo "changelog<<EOF"
-            echo "$LOG"
-            echo "EOF"
+            echo "changelog<<CHANGELOG_EOF"
+            [ -n "$HIGHLIGHTS" ] && printf '%s\n\n' "$HIGHLIGHTS"
+            [ -n "$NEW" ]   && { echo "### ✨ New";         echo; printf '%s\n' "$NEW"   | sed 's/^/- /'; echo; }
+            [ -n "$FIX" ]   && { echo "### 🐛 Fixed";       echo; printf '%s\n' "$FIX"   | sed 's/^/- /'; echo; }
+            [ -n "$OTHER" ] && { echo "### 🔧 Maintenance"; echo; printf '%s\n' "$OTHER" | sed 's/^/- /'; echo; }
+            echo "<details>"
+            echo "<summary>Full commit changelog</summary>"
+            echo
+            printf '%s\n' "$RAW" | sed 's/^/- /'
+            echo
+            echo "</details>"
+            echo "CHANGELOG_EOF"
           } >> "$GITHUB_OUTPUT"
 
       - name: Dependencies
@@ -170,8 +193,22 @@ jobs:
           # prerelease so releases/latest keeps pointing at the last real release.
           prerelease: ${{ contains(inputs.version, '-') }}
           body: |
-            ## Changelog
+            ## 🕹️ omnispeak-ap v${{ inputs.version }}
+
+            The game client — a Commander Keen engine that plays Keen 4/5/6 and talks to Archipelago.
 
             ${{ steps.changelog.outputs.changelog }}
+
+            ---
+
+            ## 🎮 Part of the Commander Keen: Goodbye Galaxy Archipelago set
+
+            Use matching versions of all three pieces together:
+
+            - 🌍 [APWorld — latest](https://github.com/Joxtacy/Archipelago-Keen/releases/latest) — generates the randomized game for Archipelago
+            - 🕹️ **Game client (omnispeak-ap)** — *this release* — plays the game and talks to Archipelago
+            - 🗺️ [PopTracker pack — latest](https://github.com/Joxtacy/commander-keen-goodbye-galaxy-ap-tracker/releases/latest) — tracks your items, locations & maps
+
+            New here? Start with the **[Setup Guide](https://github.com/Joxtacy/Archipelago-Keen/blob/keen-ap/worlds/keen/docs/setup_en.md)**.
           files: |
             ${{ env.ZIP_NAME }}
