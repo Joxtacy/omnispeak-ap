@@ -325,6 +325,29 @@ void ap_client_init(void)
 
 }
 
+// Run an AP network operation, swallowing any transport-layer exception so a
+// transient bad socket state can't abort the whole game. websocketpp throws
+// "invalid state" from send()/poll() when the underlying connection isn't OPEN
+// — e.g. an idle drop whose close event hasn't been processed yet because the
+// game was paused (poll() doesn't run while paused). Without this guard the
+// exception propagates uncaught out of the game loop and terminates the
+// process. Swallowing it is safe: the next poll() detects the dead socket and
+// reconnects cleanly, and AP re-syncs all state on reconnect.
+template <typename F>
+static void ap_guard(const char* what, F&& fn)
+{
+	try {
+		fn();
+	} catch (const std::exception& ex) {
+		FILE *f = fopen("ap_log.txt", "a");
+		if (f) {
+			fprintf(f, "[AP] %s threw: %s (ignored, will retry)\n",
+			        what, ex.what());
+			fclose(f);
+		}
+	}
+}
+
 void ap_send_death(const char* cause)
 {
 	if (!ap || ap->get_state() != APClient::State::SLOT_CONNECTED)
@@ -337,12 +360,12 @@ void ap_send_death(const char* cause)
 		{"source", ap_slotname},
 		{"cause",  cause ? cause : "Commander Keen died"},
 	};
-	ap->Bounce(data, {}, {}, {"DeathLink"});
+	ap_guard("Bounce(DeathLink)", [&]{ ap->Bounce(data, {}, {}, {"DeathLink"}); });
 	// Flush immediately: most death paths set LS_Died on the same frame they
 	// fire ap_on_death, which exits the gameplay loop where ap_client_poll
 	// runs. Without this, the Bounce sits queued in the websocket until the
 	// player dismisses the death/try-again modal.
-	ap->poll();
+	ap_guard("poll(send_death)", []{ ap->poll(); });
 
 	FILE *f = fopen("ap_log.txt", "a");
 	if (f)
@@ -355,7 +378,7 @@ void ap_send_death(const char* cause)
 void ap_client_poll(void)
 {
     if (ap)
-        ap->poll();
+        ap_guard("poll", []{ ap->poll(); });
 }
 
 void ap_client_location_check(int location_id)
@@ -365,7 +388,7 @@ void ap_client_location_check(int location_id)
 
     std::list<int64_t> checks;
     checks.push_back(location_id);
-    ap->LocationChecks(checks);
+    ap_guard("LocationChecks", [&]{ ap->LocationChecks(checks); });
 }
 
 bool ap_is_checked(int id)
@@ -460,7 +483,9 @@ void ap_mark_boss_complete(int ep)
 		APClient::DataStorageOperation op;
 		op.operation = "replace";
 		op.value = true;
-		ap->Set(ap_boss_done_key(ep), nlohmann::json(false), false, {op});
+		ap_guard("Set(boss_done)", [&]{
+			ap->Set(ap_boss_done_key(ep), nlohmann::json(false), false, {op});
+		});
 	}
 }
 
@@ -479,7 +504,7 @@ bool ap_announce_victory(void)
 
 	if (victory)
 	{
-		ap->StatusUpdate(APClient::ClientStatus::GOAL);
+		ap_guard("StatusUpdate(GOAL)", []{ ap->StatusUpdate(APClient::ClientStatus::GOAL); });
 		return true;
 	}
 
@@ -838,7 +863,7 @@ void ap_datastorage_set_level(int level, int episode)
 	op.operation = "replace";
 	op.value = value;
 
-	ap->Set(key, nlohmann::json(nullptr), false, {op});
+	ap_guard("Set(current_level)", [&]{ ap->Set(key, nlohmann::json(nullptr), false, {op}); });
 }
 
 // Parse a key's value as a boolean. Accepts 0/1, true/false, yes/no, on/off
