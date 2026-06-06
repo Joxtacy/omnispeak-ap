@@ -19,6 +19,16 @@
 
 static bool ap_items[AP_MAX_ITEMS];
 static bool ap_initialized = false;
+
+// Highest server item index we've already applied this session. On connect
+// (and every idle-drop reconnect) the server replays the entire received-items
+// list from index 0; without this high-water mark the stackable filler items
+// (extra keens, stunner ammo) would be re-granted on every reconnect. Permanent
+// items are idempotent via ap_items[], but filler deliberately bypasses that
+// guard, so we gate the whole replay on the monotonic NetworkItem index here.
+// Reset per process in ap_client_init (reconnects don't re-run init), so a
+// genuine fresh launch still receives the full replay exactly once.
+static int64_t ap_last_item_index = -1;
 static char ap_server[256] = {0};
 static char ap_slotname[64] = {0};
 static char ap_password[64] = {0};
@@ -65,6 +75,7 @@ static void ap_update_window_title(const char *slot)
 void ap_client_init(void)
 {
     memset(ap_items, 0, sizeof(ap_items));
+    ap_last_item_index = -1;
 
 	ap_initialized = true;
 
@@ -204,6 +215,15 @@ void ap_client_init(void)
 		[](const std::list<APClient::NetworkItem>& items) {
 		for (auto& item : items)
 		{
+			// Skip anything already applied this session. The server replays
+			// the full list from index 0 on every (re)connect; only items past
+			// our high-water mark are genuinely new. This stops idle-drop
+			// reconnects from re-granting filler (extra keens / stunner ammo)
+			// and from re-toasting every previously received item.
+			if (item.index <= ap_last_item_index)
+				continue;
+			ap_last_item_index = item.index;
+
 			ap_client_give_item(item.item);
 
 			// Toast every received item. The PrintJSON handler covers
