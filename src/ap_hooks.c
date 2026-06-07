@@ -238,7 +238,8 @@ bool ap_has_level(int level, int ep)
 		AP_ITEM_DTT,
 		AP_ITEM_BMI,
 		AP_ITEM_GDH,
-		AP_ITEM_QED
+		AP_ITEM_QED,
+		AP_ITEM_KORATH // 13: secret level, gated at the in-level teleporter
 	};
 
 	if (ep == 1)

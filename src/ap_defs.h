@@ -269,6 +269,9 @@ typedef enum
 	AP_ITEM_QED_YELLOW_GEM,
 	AP_ITEM_QED_GEMSET,
 
+	//CK5 Korath III Base (secret level; no gems/keycard)
+	AP_ITEM_KORATH,
+
 	//Victory Items
 	AP_ITEM_KEEN4_COMPLETE,
 	AP_ITEM_KEEN5_COMPLETE,
@@ -311,7 +314,10 @@ typedef enum
 	AP_LEVEL_DEFENSE_TUNNEL_TELN = 9,
 	AP_LEVEL_BROWNIAN_MOTION_INDUCER = 10,
 	AP_LEVEL_GRAVITATIONAL_DAMPING_HUB = 11,
-	AP_LEVEL_QUANTUM_EXPLOSION_DYNAMO = 12
+	AP_LEVEL_QUANTUM_EXPLOSION_DYNAMO = 12,
+	// Secret level. Reached via the hidden teleporter inside the
+	// Gravitational Damping Hub; engine level slot 13 (currentLevel == 0xD).
+	AP_LEVEL_KORATH_III_BASE = 13
 } CK5_LevelId;
 
 static const int CK4_MAX_POINTS[] = 

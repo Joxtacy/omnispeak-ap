@@ -46,6 +46,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 //AP Specific
 #include "ap_hooks.h"
+#include "ap_defs.h" // AP_LEVEL_* enums (Korath teleporter gating)
 
 void CK_SpawnKeen(int tileX, int tileY, int direction);
 extern CK_object *ck_keenObj;
@@ -586,8 +587,20 @@ void CK_KeenEnterDoor(CK_object *obj)
 	{
 		if (destination == 0x0000)
 		{
-			ck_gameState.levelState = LS_TeleportToKorath;
-			obj->currentAction = CK_ACTION(CK_ACT_keenEnteredDoor);
+			// Secret teleporter to Korath III Base. AP-gate it on the
+			// "Korath III Base" unlock item (engine level 13). Without it,
+			// don't teleport — step Keen back out of the door in place
+			// (advance to the door's emerge action) so the door is inert
+			// rather than warping to tile (0,0) or softlocking.
+			if (ap_has_level(AP_LEVEL_KORATH_III_BASE, EP_CK5))
+			{
+				ck_gameState.levelState = LS_TeleportToKorath;
+				obj->currentAction = CK_ACTION(CK_ACT_keenEnteredDoor);
+			}
+			else
+			{
+				CK_SetAction2(obj, obj->currentAction->next);
+			}
 			return;
 		}
 

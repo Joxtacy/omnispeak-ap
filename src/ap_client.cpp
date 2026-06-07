@@ -570,8 +570,13 @@ void ap_apply_level_items(int level, int ep)
 					ck_gameState.keyGems[0] = ck_gameState.keyGems[3] = 1;
 				break;
 			case AP_LEVEL_PYRAMID_OF_THE_FORBIDDEN:
-				if (ap_has_item(AP_ITEM_POTF_RED_GEM_1) || ap_has_item(AP_ITEM_POTF_RED_GEM_2))
-					ck_gameState.keyGems[0] = 1;
+				// POTF is the only level with TWO red gem holders. keyGems is a
+				// consumable count (each holder does keyGems[c]--), so opening
+				// both red doors needs a red count of 2. Grant one red per red
+				// item held (two distinct AP items), not a single boolean.
+				ck_gameState.keyGems[0] =
+					(ap_has_item(AP_ITEM_POTF_RED_GEM_1) ? 1 : 0) +
+					(ap_has_item(AP_ITEM_POTF_RED_GEM_2) ? 1 : 0);
 				if (ap_has_item(AP_ITEM_POTF_BLUE_GEM))
 					ck_gameState.keyGems[2] = 1;
 				if (ap_has_item(AP_ITEM_POTF_GREEN_GEM))
@@ -579,7 +584,10 @@ void ap_apply_level_items(int level, int ep)
 				if (ap_has_item(AP_ITEM_POTF_YELLOW_GEM))
 					ck_gameState.keyGems[1] = 1;
 				if (ap_has_item(AP_ITEM_POTF_GEMSET))
-					ck_gameState.keyGems[0] = ck_gameState.keyGems[1] = ck_gameState.keyGems[2] = ck_gameState.keyGems[3] = 1;
+				{
+					ck_gameState.keyGems[0] = 2; // both red doors
+					ck_gameState.keyGems[1] = ck_gameState.keyGems[2] = ck_gameState.keyGems[3] = 1;
+				}
 				break;
 			case AP_LEVEL_ISLE_OF_TAR:
 				if (ap_has_item(AP_ITEM_IOT_RED_GEM))
@@ -844,6 +852,7 @@ static int ap_translate_item(int id)
 		case 201202: return AP_ITEM_QED_BLUE_GEM;
 		case 201203: return AP_ITEM_QED_GREEN_GEM;
 		case 201299: return AP_ITEM_QED_GEMSET;
+		case 2013: return AP_ITEM_KORATH;
 	}
 	return -1;
 }
