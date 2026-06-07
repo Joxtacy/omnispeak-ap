@@ -727,6 +727,26 @@ void ap_apply_level_items(int level, int ep)
 				if (ap_has_item(AP_ITEM_QED_GEMSET))
 					ck_gameState.keyGems[0] = ck_gameState.keyGems[1] = ck_gameState.keyGems[2] = ck_gameState.keyGems[3] = 1;
 				break;
+			case AP_LEVEL_KORATH_III_BASE:
+				// Korath has TWO blue gem holders (cf. POTF's two reds), so the
+				// blue count must reach 2 to open both doors. Grant one blue per
+				// blue item held; the gemset grants both.
+				if (ap_has_item(AP_ITEM_KORATH_YELLOW_GEM))
+					ck_gameState.keyGems[1] = 1;
+				ck_gameState.keyGems[2] =
+					(ap_has_item(AP_ITEM_KORATH_BLUE_GEM_1) ? 1 : 0) +
+					(ap_has_item(AP_ITEM_KORATH_BLUE_GEM_2) ? 1 : 0);
+				if (ap_has_item(AP_ITEM_KORATH_GREEN_GEM))
+					ck_gameState.keyGems[3] = 1;
+				if (ap_has_item(AP_ITEM_KORATH_GEMSET))
+				{
+					ck_gameState.keyGems[1] = 1;
+					ck_gameState.keyGems[2] = 2; // both blue doors
+					ck_gameState.keyGems[3] = 1;
+				}
+				if (ap_has_item(AP_ITEM_KORATH_KEYCARD))
+					ck_gameState.ep.ck5.securityCard = 1;
+				break;
 		}
 	}
 }
@@ -853,6 +873,12 @@ static int ap_translate_item(int id)
 		case 201203: return AP_ITEM_QED_GREEN_GEM;
 		case 201299: return AP_ITEM_QED_GEMSET;
 		case 2013: return AP_ITEM_KORATH;
+		case 201301: return AP_ITEM_KORATH_YELLOW_GEM;
+		case 201302: return AP_ITEM_KORATH_BLUE_GEM_1;
+		case 201312: return AP_ITEM_KORATH_BLUE_GEM_2;
+		case 201303: return AP_ITEM_KORATH_GREEN_GEM;
+		case 201304: return AP_ITEM_KORATH_KEYCARD;
+		case 201399: return AP_ITEM_KORATH_GEMSET;
 	}
 	return -1;
 }

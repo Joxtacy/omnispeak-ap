@@ -269,8 +269,14 @@ typedef enum
 	AP_ITEM_QED_YELLOW_GEM,
 	AP_ITEM_QED_GEMSET,
 
-	//CK5 Korath III Base (secret level; no gems/keycard)
+	//CK5 Korath III Base (secret level). Two blue gem holders -> two blue items.
 	AP_ITEM_KORATH,
+	AP_ITEM_KORATH_YELLOW_GEM,
+	AP_ITEM_KORATH_BLUE_GEM_1,
+	AP_ITEM_KORATH_BLUE_GEM_2,
+	AP_ITEM_KORATH_GREEN_GEM,
+	AP_ITEM_KORATH_GEMSET,
+	AP_ITEM_KORATH_KEYCARD,
 
 	//Victory Items
 	AP_ITEM_KEEN4_COMPLETE,
