@@ -1288,6 +1288,17 @@ void CK_CheckKeys()
 	if (IN_GetKeyState(IN_SC_Control) && IN_GetKeyState(IN_SC_R))
 	{
 		ap_force_abort = 1;
+		// If we're already on the overworld map there's no level to exit to, so
+		// respawn at the new-game start flag (mapPosX == 0 makes CK_SpawnMapKeen
+		// use the start tile). This means you can never get stranded in a sealed
+		// map pocket such as the Pyramid of the Forbidden's. In a level we leave
+		// mapPos alone, so CTRL+R still drops you back where you entered — you
+		// can freely exit and re-enter a secret level from its pocket.
+		if (ca_mapOn == CK_INT(ck_worldMapNumber, 0))
+		{
+			ck_gameState.mapPosX = 0;
+			ck_gameState.mapPosY = 0;
+		}
 		ck_gameState.currentLevel = 0;
 		ck_gameState.levelState = LS_Died; //hook into the LS_Died state but ap_force_abort prevents the UI message and loss of a life
 	}
