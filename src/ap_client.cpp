@@ -169,6 +169,15 @@ void ap_client_init(void)
             episode = std::stoi(val.get<std::string>());
     }
 
+    if (slot_data.contains("ck4_goal"))
+    {
+        auto& val = slot_data["ck4_goal"];
+        if (val.is_number())
+            ap_ck4_goal = val.get<int>();
+        else if (val.is_string())
+            ap_ck4_goal = std::stoi(val.get<std::string>());
+    }
+
     if (slot_data.contains("death_link"))
     {
         auto& val = slot_data["death_link"];

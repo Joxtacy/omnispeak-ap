@@ -24,6 +24,12 @@
 #define AP_EPISODE_CK4				1
 #define AP_EPISODE_CK5				2
 
+// Keen 4 goal (slot_data "ck4_goal"; mirrors apworld Options.CK4Goal).
+//   MEGAROCKET: win by completing the Bean-With-Bacon Megarocket (default).
+//   COUNCIL:    win by rescuing all 8 council members (CK4_NumCouncilsToRescue).
+#define AP_CK4_GOAL_MEGAROCKET		0
+#define AP_CK4_GOAL_COUNCIL			1
+
 #define LOC_LEVEL_COMPLETE(ep, lvl) \
 (AP_LOC_BASE_LEVEL_COMPLETE + \
 ((ep) * AP_LOC_EPISODE_STRIDE) + \

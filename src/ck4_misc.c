@@ -43,6 +43,7 @@ CK_EpisodeDef ck4_episode = {
 
 //AP Specific
 #include "ap_hooks.h"
+#include "ap_defs.h"
 
 // Contains some keen-4 specific functions.
 
@@ -701,7 +702,13 @@ void CK4_ShowCouncilMessage(void)
 	VH_UpdateScreen();
 	// VW_WaitVBL(30);
 	IN_WaitButton();
-	//ck_gameState.ep.ck4.membersRescued++; //Disable for AP purposes
+	// Vanilla increments the rescued counter here. For AP it is gated on the
+	// goal: only the council-rescue goal counts rescues toward victory (the
+	// counter reaching CK4_NumCouncilsToRescue ends the game in ck_game.c).
+	// Under the Megarocket goal the counter stays at 0 so the council ending
+	// never fires and the game runs to the Megarocket as before.
+	if (ap_ck4_goal == AP_CK4_GOAL_COUNCIL)
+		ck_gameState.ep.ck4.membersRescued++;
 	CA_DownLevel();
 	StopMusic();
 }

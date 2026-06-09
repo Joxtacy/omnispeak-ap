@@ -43,6 +43,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //AP Specific
 #include "ap_hooks.h"
 #include "ap_client.h"
+#include "ap_defs.h"
 
 // =========================================================================
 
@@ -1041,6 +1042,13 @@ void CK_GameLoop()
 
 				if (ck_gameState.ep.ck4.membersRescued == CK_INT(CK4_NumCouncilsToRescue, 8))
 				{
+					// All council members rescued: this is the council-rescue
+					// goal's win condition (the counter only increments under
+					// that goal — see ck4_misc.c). Signal the durable AP
+					// victory before showing the vanilla Oracle ending.
+					ap_mark_boss_complete(AP_EPISODE_CK4);
+					ap_announce_victory();
+
 					// Game won
 					CK_EndingPurge();
 					// RF_Reset();

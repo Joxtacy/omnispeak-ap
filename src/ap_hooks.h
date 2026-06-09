@@ -16,6 +16,11 @@ extern bool ap_death_link_enabled;
 extern bool ap_pending_death;
 extern bool ap_suppress_death_send;
 
+// Keen 4 goal selector (AP_CK4_GOAL_*). Set from slot_data on connect; read by
+// the council-rescue victory path (ck4_misc.c, ck_game.c) and the Megarocket
+// victory gate (ap_on_level_complete). Defaults to AP_CK4_GOAL_MEGAROCKET.
+extern int ap_ck4_goal;
+
 void ap_on_level_complete(void);
 void ap_on_keygem_get(int item);
 void ap_on_security_card_get(void);

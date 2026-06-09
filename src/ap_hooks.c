@@ -24,6 +24,8 @@ bool ap_death_link_enabled = false;
 bool ap_pending_death = false;
 bool ap_suppress_death_send = false;
 
+int ap_ck4_goal = AP_CK4_GOAL_MEGAROCKET;
+
 void ap_on_level_complete(void)
 {
 	int location_id = LOC_LEVEL_COMPLETE(ap_current_episode, ap_current_level);
@@ -32,7 +34,11 @@ void ap_on_level_complete(void)
 	// Goal completion is tracked locally — the server's "checked locations"
 	// set can be polluted by !collect / auto-collect when other players
 	// goal, which would otherwise trigger a false victory.
-	if (ap_current_episode == AP_EPISODE_CK4 && ap_current_level == AP_LEVEL_BEAN_WITH_BACON_MEGAROCKET)
+	// Under the council-rescue goal, completing the Megarocket is NOT the win
+	// condition (rescuing all 8 council members is — see ck_game.c), so only
+	// mark Keen 4 boss-done from BWBM when the Megarocket goal is selected.
+	if (ap_current_episode == AP_EPISODE_CK4 && ap_current_level == AP_LEVEL_BEAN_WITH_BACON_MEGAROCKET
+		&& ap_ck4_goal == AP_CK4_GOAL_MEGAROCKET)
 		ap_mark_boss_complete(AP_EPISODE_CK4);
 	else if (ap_current_episode == AP_EPISODE_CK5 && ap_current_level == AP_LEVEL_QUANTUM_EXPLOSION_DYNAMO)
 		ap_mark_boss_complete(AP_EPISODE_CK5);
