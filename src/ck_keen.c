@@ -1165,14 +1165,7 @@ void CK_KeenJumpThink(CK_object *obj)
 		}
 		else // Normal or Hard
 		{
-			// AP - normalize gravity so logic is consistent across
-			// difficulties. Demo playback falls back to the original
-			// CK_PhysGravityHigh so the recorded demos stay deterministic
-			// against tests/demoN.dump4/5.
-			if (IN_DemoGetMode() != IN_Demo_Off)
-				CK_PhysGravityHigh(obj);
-			else
-				CK_PhysGravityMid(obj);
+			CK_PhysGravityHigh(obj);
 		}
 
 		if (obj->velY > 0 && obj->currentAction != CK_ACTION(CK_ACT_keenFall1) && obj->currentAction != CK_ACTION(CK_ACT_keenFall2))
@@ -1423,13 +1416,7 @@ void CK_KeenPogoThink(CK_object *obj)
 		}
 		else
 		{
-			// AP - normalize gravity for consistent logic. Demo playback
-			// falls back to the original CK_PhysGravityHigh so the recorded
-			// demos stay deterministic against tests/demoN.dump4/5.
-			if (IN_DemoGetMode() != IN_Demo_Off)
-				CK_PhysGravityHigh(obj);
-			else
-				CK_PhysGravityMid(obj);
+			CK_PhysGravityHigh(obj);
 		}
 	}
 	else
